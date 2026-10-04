@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Header } from '@/components/layout/header';
@@ -9,67 +9,93 @@ import { BrushstrokeX } from '@/components/motion/brushstroke-x';
 import { ScrollReveal } from '@/components/motion/scroll-reveal';
 import { AnimatedCard } from '@/components/motion/animated-card';
 import { QuietButton } from '@/components/ui/quiet-button';
-import { HeroCanvas } from '@/components/3d/hero-canvas';
+import { SignatureBand } from '@/components/features/signature-band';
+import { CustomStudioUpload } from '@/components/features/custom-studio-upload';
 import { useCart } from '@/hooks/use-cart';
-import { INITIAL_PRODUCTS, SHELVES_DATA } from '@/lib/products-data';
+import { Product, INITIAL_PRODUCTS, SHELVES_DATA } from '@/lib/products-data';
+import { getStoreCategories, getFeaturedProducts } from '@/lib/supabase/store';
 import { Smartphone, Monitor, ArrowDown, ChevronRight, Sparkles } from 'lucide-react';
 
 export default function HomePage() {
   const { addItem } = useCart();
-  const [devicePreviewWidth, setDevicePreviewWidth] = useState<'desktop' | 'mobile'>('desktop');
+  const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
+  const [shelves, setShelves] = useState<typeof SHELVES_DATA>(SHELVES_DATA);
   const [selectedShelf, setSelectedShelf] = useState<string>('Signature / Premium');
+  const [devicePreviewWidth, setDevicePreviewWidth] = useState<'desktop' | 'mobile'>('desktop');
+
+  // Pull categories & featured products from Supabase (with automatic fallback to seed data)
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [catData, prodData] = await Promise.all([
+          getStoreCategories(),
+          getFeaturedProducts(),
+        ]);
+        if (catData.shelves && catData.shelves.length > 0) {
+          setShelves(catData.shelves as any);
+        }
+        if (prodData && prodData.length > 0) {
+          setProducts(prodData);
+        }
+      } catch (e) {
+        console.error('Store data load error', e);
+      }
+    }
+    loadData();
+  }, []);
+
+  const heroProduct = products[0];
 
   return (
     <div className="min-h-screen bg-canvas text-ink flex flex-col font-sans selection:bg-onyx selection:text-chalk">
-      {/* 1. Slim Sticky Header (Black-on-cream on light section) */}
+      {/* Slim Sticky Header */}
       <Header theme="light" />
 
-      {/* 2. Hero Section (Calm, Apple-Grade Minimalism with Brushstroke X Drawing on Load) */}
-      <section className="relative min-h-[88vh] flex flex-col justify-center px-4 sm:px-8 max-w-7xl mx-auto w-full pt-8 pb-16">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
-          {/* Left Column: Typography & Architectural Drawing */}
+      {/* =========================================================================
+          SECTION 1: HERO
+          Brushstroke-X load animation, oversized headline, short sub-line,
+          one hero product image with a Shop button.
+      ========================================================================= */}
+      <section className="relative min-h-[92vh] flex flex-col justify-center px-4 sm:px-8 max-w-7xl mx-auto w-full pt-12 pb-24">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+          {/* Left: Headline & Callout */}
           <div className="lg:col-span-7 space-y-8 text-left">
-            {/* Animated Brushstroke X drawing once on load */}
+            {/* Brushstroke X drawing animation on load */}
             <div className="flex items-center gap-4">
-              <BrushstrokeX size={72} color="#141414" />
+              <BrushstrokeX size={76} color="#141414" />
               <div className="h-8 w-[1px] bg-hairline-light" />
               <span className="font-heading text-xs tracking-apple-widest text-slate font-light uppercase">
                 Studio Edition 01 &bull; 2026
               </span>
             </div>
 
-            {/* Heading: Jost light 300 with wide letter-spacing */}
+            {/* Oversized Headline */}
             <ScrollReveal delay={0.1}>
-              <h1 className="font-heading text-4xl sm:text-6xl xl:text-7xl font-light tracking-apple-wide text-ink leading-[1.08] uppercase">
+              <h1 className="font-heading text-4xl sm:text-6xl xl:text-7xl font-light tracking-apple-wide text-ink leading-[1.06] uppercase">
                 Architectural <br />
                 Permanence.
               </h1>
             </ScrollReveal>
 
-            {/* Body: Inter font, slate secondary text */}
+            {/* Short Sub-Line */}
             <ScrollReveal delay={0.25}>
               <p className="font-sans text-sm sm:text-base text-slate max-w-lg leading-relaxed font-normal">
                 Tangible physical artifacts designed through parametric computation and fabricated via aerospace micro-stereolithography and laser-sintered nylon.
               </p>
             </ScrollReveal>
 
-            {/* Quiet Primary Button with wipe-in underline on hover */}
+            {/* Shop Button */}
             <ScrollReveal delay={0.4}>
-              <div className="flex flex-wrap items-center gap-8 pt-2">
-                <Link href="#premium">
+              <div className="pt-2">
+                <Link href="#featured">
                   <QuietButton variant="light" size="lg">
-                    Signature Shelf &rarr;
-                  </QuietButton>
-                </Link>
-                <Link href="#shelves">
-                  <QuietButton variant="light" size="lg" className="text-slate hover:text-ink">
-                    All 18 Shelves
+                    Shop Collection &rarr;
                   </QuietButton>
                 </Link>
               </div>
             </ScrollReveal>
 
-            {/* Subtle engineering metrics */}
+            {/* Quiet technical hallmarks */}
             <ScrollReveal delay={0.55}>
               <div className="pt-8 border-t border-hairline-light grid grid-cols-3 gap-6 max-w-md">
                 <div>
@@ -90,60 +116,178 @@ export default function HomePage() {
                 </div>
                 <div>
                   <span className="font-heading text-lg sm:text-xl font-light tracking-wider text-ink block">
-                    18 Shelves
+                    1/50
                   </span>
                   <span className="text-[11px] text-slate font-sans uppercase tracking-wider">
-                    Archival Studio
+                    Numbered Run
                   </span>
                 </div>
               </div>
             </ScrollReveal>
           </div>
 
-          {/* Right Column: Restrained Monochrome 3D Canvas */}
+          {/* Right: One Hero Product Image */}
           <div className="lg:col-span-5 w-full">
-            <div className="relative rounded-2xl border border-hairline-light bg-[#EBE7DF]/40 overflow-hidden">
-              <HeroCanvas theme="light" />
-              <div className="absolute top-4 left-4 pointer-events-none">
-                <span className="text-[10px] font-mono tracking-apple-widest uppercase px-2.5 py-1 rounded-full bg-canvas/80 text-slate border border-hairline-light">
-                  Object 01 &bull; Voronoi Torus
-                </span>
+            <ScrollReveal delay={0.3}>
+              <div className="group relative rounded-3xl border border-hairline-light bg-[#ECE9E2]/60 p-4 sm:p-6 overflow-hidden shadow-xl transition-all duration-500 hover:-translate-y-1">
+                <div className="relative aspect-[4/5] w-full rounded-2xl overflow-hidden bg-[#E2DFD8]">
+                  <Image
+                    src={heroProduct.image}
+                    alt={heroProduct.name}
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 40vw"
+                    priority
+                    className="object-cover transition-transform duration-700 ease-apple-out group-hover:scale-[1.03]"
+                  />
+                  <div className="absolute top-4 left-4 z-10">
+                    <span className="text-[10px] font-mono tracking-apple-widest uppercase px-3 py-1 rounded-full bg-canvas/80 backdrop-blur-md text-slate border border-hairline-light">
+                      Hero Object &bull; {heroProduct.category}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="pt-5 pb-2 flex items-center justify-between">
+                  <div>
+                    <h3 className="font-heading text-base font-light tracking-apple-wide text-ink uppercase">
+                      {heroProduct.name}
+                    </h3>
+                    <span className="text-xs text-slate font-sans">
+                      {heroProduct.tagline}
+                    </span>
+                  </div>
+                  <Link href="#featured">
+                    <QuietButton variant="light" size="sm">
+                      Inspect &rarr;
+                    </QuietButton>
+                  </Link>
+                </div>
               </div>
-            </div>
+            </ScrollReveal>
           </div>
         </div>
 
-        {/* Quiet scroll indicator */}
-        <div className="pt-12 flex justify-center">
-          <Link href="#premium" aria-label="Scroll down">
+        {/* Quiet scroll arrow */}
+        <div className="pt-16 flex justify-center">
+          <Link href="#signature" aria-label="Scroll down">
             <ArrowDown className="w-4 h-4 text-slate animate-bounce stroke-[1.2]" />
           </Link>
         </div>
       </section>
 
-      {/* 3. SIGNATURE / PREMIUM SHELF (6 Products with Prices in INR) */}
-      <section id="premium" className="py-24 px-4 sm:px-8 max-w-7xl mx-auto w-full border-t border-hairline-light">
+      {/* =========================================================================
+          SECTION 2: SIGNATURE BAND ON ONYX BACKGROUND
+          Premium categories as large editorial cards, pinned with smooth transitions.
+      ========================================================================= */}
+      <SignatureBand products={products} />
+
+      {/* =========================================================================
+          SECTION 3: SHOP BY CATEGORY GRID OF ALL SHELVES
+          Full-width calm moment with tabs for all 18 shelves and category tiles.
+      ========================================================================= */}
+      <section id="shelves" className="py-32 sm:py-40 px-4 sm:px-8 max-w-7xl mx-auto w-full border-t border-hairline-light">
         <ScrollReveal>
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-14">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-16">
             <div>
-              <div className="flex items-center gap-2 mb-2 text-xs font-mono uppercase tracking-widest text-slate">
-                <Sparkles className="w-3.5 h-3.5 stroke-[1.5]" />
-                <span>Shelf 01 &bull; Signature Collection</span>
-              </div>
+              <span className="font-heading text-xs tracking-apple-widest text-slate font-light uppercase block mb-2">
+                Store Taxonomy &bull; 18 Shelves
+              </span>
               <h2 className="font-heading text-3xl sm:text-4xl font-light tracking-apple-wide text-ink uppercase">
-                Signature / Premium
+                Shop By Category
               </h2>
             </div>
-            <p className="text-xs text-slate max-w-md font-sans leading-relaxed">
-              Our flagship bespoke architectural works. Numbered editions manufactured with micron laser tolerance and museum curation.
+            <p className="text-xs text-slate max-w-sm font-sans leading-relaxed">
+              Explore specialized fabrication categories across architecture, desk art, biometric wearables, and devotional sanctuaries.
             </p>
           </div>
         </ScrollReveal>
 
-        {/* 6 Signature / Premium Products Grid */}
+        {/* Shelves Selector Pills */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-6 mb-10 scrollbar-none">
+          {shelves.map((s) => (
+            <button
+              key={s.shelf}
+              onClick={() => setSelectedShelf(s.shelf)}
+              className={`px-4 py-2 rounded-xl text-xs font-heading font-light tracking-apple-wide whitespace-nowrap transition-all border ${
+                selectedShelf === s.shelf
+                  ? 'bg-onyx text-chalk border-onyx'
+                  : 'bg-canvas text-slate border-hairline-light hover:text-ink hover:border-slate/40'
+              }`}
+            >
+              {s.shelf}
+            </button>
+          ))}
+        </div>
+
+        {/* Active Shelf Categories Grid */}
+        {(() => {
+          const current = shelves.find((s) => s.shelf === selectedShelf) || shelves[0];
+          return (
+            <div className="p-8 sm:p-12 rounded-3xl border border-hairline-light bg-[#ECE9E2]/50">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 mb-8 border-b border-hairline-light gap-4">
+                <div>
+                  <h3 className="font-heading text-xl sm:text-2xl font-light tracking-apple-wide text-ink uppercase">
+                    {current.shelf}
+                  </h3>
+                  <span className="text-xs text-slate font-mono">
+                    {current.categories.length} Specialized Fabrication Categories
+                  </span>
+                </div>
+                <Link href="#featured">
+                  <QuietButton variant="light" size="sm">
+                    View Featured Products &rarr;
+                  </QuietButton>
+                </Link>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {current.categories.map((cat) => (
+                  <div
+                    key={cat.slug}
+                    className="p-5 rounded-2xl border border-hairline-light bg-canvas hover:border-slate/40 transition-all duration-300 group flex items-center justify-between hover:-translate-y-0.5"
+                  >
+                    <div>
+                      <h4 className="font-heading text-xs font-light tracking-apple-wide text-ink group-hover:text-black">
+                        {cat.name}
+                      </h4>
+                      <span className="text-[10px] font-mono text-slate block mt-1">
+                        /{cat.slug}
+                      </span>
+                    </div>
+                    <ChevronRight className="w-3.5 h-3.5 text-slate group-hover:text-ink group-hover:translate-x-1 transition-all stroke-[1.5]" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
+      </section>
+
+      {/* =========================================================================
+          SECTION 4: FEATURED-PRODUCTS ROW
+          Calm row of the 6 Signature/Premium products with self-drawing borders.
+      ========================================================================= */}
+      <section id="featured" className="py-32 sm:py-40 px-4 sm:px-8 max-w-7xl mx-auto w-full border-t border-hairline-light">
+        <ScrollReveal>
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-16">
+            <div>
+              <div className="flex items-center gap-2 mb-2 text-xs font-mono uppercase tracking-widest text-slate">
+                <Sparkles className="w-3.5 h-3.5 stroke-[1.5]" />
+                <span>Curated Artifacts</span>
+              </div>
+              <h2 className="font-heading text-3xl sm:text-4xl font-light tracking-apple-wide text-ink uppercase">
+                Featured Products
+              </h2>
+            </div>
+            <p className="text-xs text-slate max-w-sm font-sans leading-relaxed">
+              Precision SLA and SLS pieces in numbered runs. Click any card to inspect or add directly to your archival bag.
+            </p>
+          </div>
+        </ScrollReveal>
+
+        {/* Featured Products Grid */}
         <ScrollReveal staggerChildren={0.12}>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {INITIAL_PRODUCTS.map((prod) => (
+            {products.map((prod) => (
               <AnimatedCard
                 key={prod.id}
                 title={prod.name}
@@ -160,23 +304,79 @@ export default function HomePage() {
         </ScrollReveal>
       </section>
 
-      {/* 4. COMPONENT & MOTION SHOWCASE: Mobile (390px) vs Desktop Width Viewer */}
-      <section id="showcase" className="py-20 px-4 sm:px-8 border-t border-hairline-light bg-[#EBE7DF]/30">
+      {/* =========================================================================
+          SECTION 5: CUSTOM STUDIO BLOCK (Inviting an Upload)
+          Full-width calm moment on Onyx with CAD upload ingestion.
+      ========================================================================= */}
+      <section id="studio" className="w-full bg-onyx text-chalk py-32 sm:py-40 border-t border-hairline-dark">
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 space-y-16">
+          <ScrollReveal>
+            <div className="text-center max-w-2xl mx-auto space-y-4">
+              <span className="font-heading text-xs tracking-apple-widest text-slate font-light uppercase block">
+                Shelf 18 &bull; Bespoke Fabrication
+              </span>
+              <h2 className="font-heading text-3xl sm:text-5xl font-light tracking-apple-wide text-chalk uppercase">
+                Custom Studio
+              </h2>
+              <p className="text-xs sm:text-sm text-slate font-sans leading-relaxed">
+                Bring your proprietary geometry to reality. Drop an <code className="text-chalk">.STL</code>, <code className="text-chalk">.STEP</code>, or <code className="text-chalk">.OBJ</code> file for automated mesh slicing and instant quotation in Indian Rupees (₹).
+              </p>
+            </div>
+          </ScrollReveal>
+
+          {/* Interactive Upload Box */}
+          <ScrollReveal delay={0.2}>
+            <CustomStudioUpload />
+          </ScrollReveal>
+
+          {/* Fabrication Standards */}
+          <div className="pt-8 border-t border-hairline-dark grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-3xl mx-auto text-center">
+            <div>
+              <span className="font-heading text-sm font-light tracking-wide text-chalk block uppercase">
+                Automated Slicing
+              </span>
+              <span className="text-xs text-slate font-sans mt-1 block">
+                Instant wall-thickness analysis and structural inspection.
+              </span>
+            </div>
+            <div>
+              <span className="font-heading text-sm font-light tracking-wide text-chalk block uppercase">
+                Aerospace Polymers
+              </span>
+              <span className="text-xs text-slate font-sans mt-1 block">
+                High-temperature SLA composite & sintered PA12 nylon.
+              </span>
+            </div>
+            <div>
+              <span className="font-heading text-sm font-light tracking-wide text-chalk block uppercase">
+                Single Piece Runs
+              </span>
+              <span className="text-xs text-slate font-sans mt-1 block">
+                No minimum order quantity required.
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          SECTION 6: RESPONSIVE VIEWPORT SANDBOX (Mobile 390px vs Desktop)
+      ========================================================================= */}
+      <section className="py-20 px-4 sm:px-8 border-t border-hairline-light bg-[#EBE7DF]/30">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-12">
             <div>
               <span className="font-heading text-xs tracking-apple-widest text-slate font-light uppercase block mb-1">
-                Motion System Verification
+                Responsive Motion Sandbox
               </span>
               <h2 className="font-heading text-2xl sm:text-3xl font-light tracking-apple-wide text-ink uppercase">
                 Mobile &bull; Desktop Viewport Preview
               </h2>
               <p className="text-xs text-slate mt-1 max-w-lg font-sans">
-                Observe the self-drawing hairline border on scroll, gentle lift, and slight image zoom on hover. Toggle below to test responsive mobile (390px) and desktop behaviors.
+                Toggle below to test the card hairline border drawing and responsive behavior at standard mobile width (390px) and desktop width.
               </p>
             </div>
 
-            {/* Mobile / Desktop Toggle Switch */}
             <div className="inline-flex p-1 rounded-xl bg-canvas border border-hairline-light self-start sm:self-auto">
               <button
                 onClick={() => setDevicePreviewWidth('desktop')}
@@ -203,7 +403,6 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Interactive Responsive Sandbox Container */}
           <div className="flex justify-center transition-all duration-500">
             <div
               className={`w-full transition-all duration-500 ${
@@ -228,36 +427,36 @@ export default function HomePage() {
                   }`}
                 >
                   <AnimatedCard
-                    title={INITIAL_PRODUCTS[0].name}
-                    subtitle={INITIAL_PRODUCTS[0].tagline}
-                    category={INITIAL_PRODUCTS[0].category}
-                    price={INITIAL_PRODUCTS[0].price}
-                    image={INITIAL_PRODUCTS[0].image}
+                    title={products[0].name}
+                    subtitle={products[0].tagline}
+                    category={products[0].category}
+                    price={products[0].price}
+                    image={products[0].image}
                     theme="light"
                     actionLabel="Add to Bag"
-                    onAction={() => addItem(INITIAL_PRODUCTS[0])}
+                    onAction={() => addItem(products[0])}
                   />
 
                   <AnimatedCard
-                    title={INITIAL_PRODUCTS[1].name}
-                    subtitle={INITIAL_PRODUCTS[1].tagline}
-                    category={INITIAL_PRODUCTS[1].category}
-                    price={INITIAL_PRODUCTS[1].price}
-                    image={INITIAL_PRODUCTS[1].image}
+                    title={products[1].name}
+                    subtitle={products[1].tagline}
+                    category={products[1].category}
+                    price={products[1].price}
+                    image={products[1].image}
                     theme="light"
                     actionLabel="Add to Bag"
-                    onAction={() => addItem(INITIAL_PRODUCTS[1])}
+                    onAction={() => addItem(products[1])}
                   />
 
                   <AnimatedCard
-                    title={INITIAL_PRODUCTS[2].name}
-                    subtitle={INITIAL_PRODUCTS[2].tagline}
-                    category={INITIAL_PRODUCTS[2].category}
-                    price={INITIAL_PRODUCTS[2].price}
-                    image={INITIAL_PRODUCTS[2].image}
+                    title={products[2].name}
+                    subtitle={products[2].tagline}
+                    category={products[2].category}
+                    price={products[2].price}
+                    image={products[2].image}
                     theme="light"
                     actionLabel="Add to Bag"
-                    onAction={() => addItem(INITIAL_PRODUCTS[2])}
+                    onAction={() => addItem(products[2])}
                   />
                 </div>
               </ScrollReveal>
@@ -266,167 +465,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 5. COMPLETE 18 SHELVES DIRECTORY */}
-      <section id="shelves" className="py-24 px-4 sm:px-8 max-w-7xl mx-auto w-full border-t border-hairline-light">
-        <ScrollReveal>
-          <div className="mb-12">
-            <span className="font-heading text-xs tracking-apple-widest text-slate font-light uppercase block mb-1">
-              Store Taxonomy &bull; 18 Curated Shelves
-            </span>
-            <h2 className="font-heading text-3xl sm:text-4xl font-light tracking-apple-wide text-ink uppercase">
-              Archival Shelves Directory
-            </h2>
-            <p className="text-xs text-slate mt-1 max-w-md font-sans">
-              Select a shelf to inspect its specialized category architecture and production lines.
-            </p>
-          </div>
-        </ScrollReveal>
-
-        {/* Shelves Selector Pills */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-6 mb-10 scrollbar-none">
-          {SHELVES_DATA.map((s) => (
-            <button
-              key={s.shelf}
-              onClick={() => setSelectedShelf(s.shelf)}
-              className={`px-4 py-2 rounded-xl text-xs font-heading font-light tracking-apple-wide whitespace-nowrap transition-all border ${
-                selectedShelf === s.shelf
-                  ? 'bg-onyx text-chalk border-onyx'
-                  : 'bg-canvas text-slate border-hairline-light hover:text-ink hover:border-slate/40'
-              }`}
-            >
-              {s.shelf}
-            </button>
-          ))}
-        </div>
-
-        {/* Active Shelf Categories Grid */}
-        {(() => {
-          const current = SHELVES_DATA.find((s) => s.shelf === selectedShelf) || SHELVES_DATA[0];
-          return (
-            <div className="p-8 sm:p-10 rounded-2xl border border-hairline-light bg-[#ECE9E2]/50">
-              <div className="flex items-center justify-between pb-6 mb-8 border-b border-hairline-light">
-                <div>
-                  <h3 className="font-heading text-xl sm:text-2xl font-light tracking-apple-wide text-ink uppercase">
-                    {current.shelf}
-                  </h3>
-                  <span className="text-xs text-slate font-mono">
-                    {current.categories.length} Specialized Fabrication Categories
-                  </span>
-                </div>
-                <Link href="#premium">
-                  <QuietButton variant="light" size="sm">
-                    View Seeded Products &rarr;
-                  </QuietButton>
-                </Link>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {current.categories.map((cat, idx) => (
-                  <div
-                    key={cat.slug}
-                    className="p-4 rounded-xl border border-hairline-light bg-canvas hover:border-slate/40 transition-colors group flex items-center justify-between"
-                  >
-                    <div>
-                      <h4 className="font-heading text-xs font-light tracking-apple-wide text-ink group-hover:text-black">
-                        {cat.name}
-                      </h4>
-                      <span className="text-[10px] font-mono text-slate block mt-0.5">
-                        {cat.slug}
-                      </span>
-                    </div>
-                    <ChevronRight className="w-3.5 h-3.5 text-slate group-hover:text-ink group-hover:translate-x-0.5 transition-all stroke-[1.5]" />
-                  </div>
-                ))}
-              </div>
-            </div>
-          );
-        })()}
-      </section>
-
-      {/* 6. Dark Section Showcase (Onyx #0B0B0B with Cream-on-Black Logo in /public/logo-dark.svg) */}
-      <section id="studio" className="w-full bg-onyx text-chalk py-28 px-4 sm:px-8 border-t border-hairline-dark">
-        <div className="max-w-7xl mx-auto space-y-20">
-          {/* Section Header using cream-on-black logo */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start border-b border-hairline-dark pb-16">
-            <div className="lg:col-span-5 space-y-4">
-              <div className="relative h-8 w-44">
-                <Image
-                  src="/logo-dark.svg"
-                  alt="Level X 3D Dark Theme Logo"
-                  fill
-                  className="object-contain object-left"
-                />
-              </div>
-              <span className="text-[11px] font-mono tracking-widest text-slate uppercase block">
-                Dark Mode Specification &bull; Onyx #0B0B0B
-              </span>
-            </div>
-
-            <div className="lg:col-span-7 space-y-4">
-              <h3 className="font-heading text-2xl sm:text-3xl font-light tracking-apple-wide text-chalk uppercase">
-                Custom Parametric Studio
-              </h3>
-              <p className="text-xs text-slate leading-relaxed max-w-xl font-sans">
-                Our fabrication lab ingests custom CAD files (<code className="text-chalk">.STL</code>, <code className="text-chalk">.STEP</code>, <code className="text-chalk">.OBJ</code>) directly into multi-axis stereolithography rigs. Monochromatic finishing with vapor-polished matte black or ceramic chalk.
-              </p>
-              <div className="pt-2">
-                <QuietButton variant="dark">
-                  Initiate Bespoke Ingestion &rarr;
-                </QuietButton>
-              </div>
-            </div>
-          </div>
-
-          {/* Dark Cards with Hairline #262626 drawing themselves */}
-          <div>
-            <div className="mb-10">
-              <span className="font-heading text-xs tracking-apple-widest text-slate font-light uppercase block mb-1">
-                Dark Hairline Frame Test
-              </span>
-              <h4 className="font-heading text-xl font-light tracking-apple-wide text-chalk uppercase">
-                Limited Dark Run &bull; Numbered Obsidian
-              </h4>
-            </div>
-
-            <ScrollReveal staggerChildren={0.12}>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                <AnimatedCard
-                  title={INITIAL_PRODUCTS[1].name}
-                  subtitle={INITIAL_PRODUCTS[1].tagline}
-                  category={INITIAL_PRODUCTS[1].category}
-                  price={INITIAL_PRODUCTS[1].price}
-                  image={INITIAL_PRODUCTS[1].image}
-                  theme="dark"
-                  actionLabel="Acquire 1/8"
-                  onAction={() => addItem(INITIAL_PRODUCTS[1])}
-                />
-                <AnimatedCard
-                  title={INITIAL_PRODUCTS[3].name}
-                  subtitle={INITIAL_PRODUCTS[3].tagline}
-                  category={INITIAL_PRODUCTS[3].category}
-                  price={INITIAL_PRODUCTS[3].price}
-                  image={INITIAL_PRODUCTS[3].image}
-                  theme="dark"
-                  actionLabel="Acquire 1/12"
-                  onAction={() => addItem(INITIAL_PRODUCTS[3])}
-                />
-                <AnimatedCard
-                  title={INITIAL_PRODUCTS[4].name}
-                  subtitle={INITIAL_PRODUCTS[4].tagline}
-                  category={INITIAL_PRODUCTS[4].category}
-                  price={INITIAL_PRODUCTS[4].price}
-                  image={INITIAL_PRODUCTS[4].image}
-                  theme="dark"
-                  actionLabel="Acquire 1/10"
-                  onAction={() => addItem(INITIAL_PRODUCTS[4])}
-                />
-              </div>
-            </ScrollReveal>
-          </div>
-        </div>
-      </section>
-
-      {/* 7. Footer (Onyx #0B0B0B, Newsletter, Link Columns, Monochrome Payment Icons) */}
+      {/* Footer */}
       <Footer />
     </div>
   );
