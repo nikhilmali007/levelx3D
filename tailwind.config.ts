@@ -17,68 +17,35 @@ const config: Config = {
     },
     extend: {
       colors: {
-        border: 'hsl(var(--border))',
-        input: 'hsl(var(--input))',
-        ring: 'hsl(var(--ring))',
-        background: 'hsl(var(--background))',
-        foreground: 'hsl(var(--foreground))',
-        primary: {
-          DEFAULT: 'hsl(var(--primary))',
-          foreground: 'hsl(var(--primary-foreground))',
+        // Strict monochrome Apple-grade palette
+        canvas: '#F3F1EC',
+        onyx: '#0B0B0B',
+        ink: '#141414',
+        chalk: '#F3F1EC',
+        slate: '#6E6E6E',
+        hairline: {
+          light: '#E4E1DA',
+          dark: '#262626',
+          DEFAULT: '#E4E1DA',
         },
-        secondary: {
-          DEFAULT: 'hsl(var(--secondary))',
-          foreground: 'hsl(var(--secondary-foreground))',
-        },
-        destructive: {
-          DEFAULT: 'hsl(var(--destructive))',
-          foreground: 'hsl(var(--destructive-foreground))',
-        },
-        muted: {
-          DEFAULT: 'hsl(var(--muted))',
-          foreground: 'hsl(var(--muted-foreground))',
-        },
-        accent: {
-          DEFAULT: 'hsl(var(--accent))',
-          foreground: 'hsl(var(--accent-foreground))',
-        },
-        popover: {
-          DEFAULT: 'hsl(var(--popover))',
-          foreground: 'hsl(var(--popover-foreground))',
-        },
-        card: {
-          DEFAULT: 'hsl(var(--card))',
-          foreground: 'hsl(var(--card-foreground))',
-        },
-        cyan: {
-          DEFAULT: '#00f2fe',
-          glow: 'rgba(0, 242, 254, 0.35)',
-        },
-        neon: {
-          pink: '#ff007f',
-          purple: '#7928ca',
-          cyan: '#00f2fe',
-          emerald: '#10b981',
-        },
+        border: 'var(--hairline-color, #E4E1DA)',
+        background: 'var(--bg-color, #F3F1EC)',
+        foreground: 'var(--text-color, #141414)',
       },
-      borderRadius: {
-        lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)',
+      fontFamily: {
+        heading: ['var(--font-jost)', 'Jost', 'sans-serif'],
+        sans: ['var(--font-inter)', 'Inter', 'sans-serif'],
       },
-      keyframes: {
-        'pulse-slow': {
-          '0%, 100%': { opacity: '0.4' },
-          '50%': { opacity: '0.9' },
-        },
-        float: {
-          '0%, 100%': { transform: 'translateY(0)' },
-          '50%': { transform: 'translateY(-10px)' },
-        },
+      letterSpacing: {
+        'apple-wide': '0.18em',
+        'apple-widest': '0.24em',
       },
-      animation: {
-        'pulse-slow': 'pulse-slow 4s ease-in-out infinite',
-        float: 'float 6s ease-in-out infinite',
+      transitionTimingFunction: {
+        'apple-out': 'cubic-bezier(0.16, 1, 0.3, 1)',
+        'apple-in-out': 'cubic-bezier(0.65, 0, 0.35, 1)',
+      },
+      transitionDuration: {
+        '400': '400ms',
       },
     },
   },

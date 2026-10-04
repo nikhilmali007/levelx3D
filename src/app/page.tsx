@@ -1,219 +1,358 @@
 'use client';
 
+import { useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
+import { Header } from '@/components/layout/header';
+import { Footer } from '@/components/layout/footer';
+import { BrushstrokeX } from '@/components/motion/brushstroke-x';
+import { ScrollReveal, ScrollRevealItem } from '@/components/motion/scroll-reveal';
+import { AnimatedCard } from '@/components/motion/animated-card';
+import { QuietButton } from '@/components/ui/quiet-button';
 import { HeroCanvas } from '@/components/3d/hero-canvas';
-import { FeaturesBar } from '@/components/ecommerce/features-bar';
-import { ProductGrid } from '@/components/ecommerce/product-grid';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import {
-  Sparkles,
-  ArrowRight,
-  Sliders,
-  Layers,
-  ShieldCheck,
-  Cpu,
-  Database,
-  ExternalLink,
-} from 'lucide-react';
-import { isSupabaseConfigured } from '@/lib/supabase/client';
+import { useCart } from '@/hooks/use-cart';
+import { INITIAL_PRODUCTS } from '@/lib/products-data';
+import { Smartphone, Monitor, ArrowDown, Eye, CheckCircle2 } from 'lucide-react';
 
 export default function HomePage() {
+  const { addItem } = useCart();
+  const [devicePreviewWidth, setDevicePreviewWidth] = useState<'desktop' | 'mobile'>('desktop');
+
+  const sampleProduct = INITIAL_PRODUCTS[0];
+
   return (
-    <div className="flex flex-col min-h-screen">
-      {/* Hero Section */}
-      <section className="relative min-h-[92vh] flex items-center justify-center overflow-hidden pt-6 pb-12">
-        {/* Subtle Ambient Radial Gradients */}
-        <div className="absolute top-1/4 -left-40 w-96 h-96 bg-cyan/15 rounded-full blur-[130px] pointer-events-none" />
-        <div className="absolute bottom-1/4 -right-40 w-96 h-96 bg-pink-500/15 rounded-full blur-[130px] pointer-events-none" />
+    <div className="min-h-screen bg-canvas text-ink flex flex-col font-sans selection:bg-onyx selection:text-chalk">
+      {/* 1. Slim Sticky Header (Black-on-cream on light section) */}
+      <Header theme="light" />
 
-        <div className="max-w-7xl mx-auto px-4 w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
-          {/* Left Text Column */}
-          <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan/10 border border-cyan/30 text-cyan text-xs font-mono tracking-wider">
-              <span className="w-2 h-2 rounded-full bg-cyan animate-pulse" />
-              <span>LEVEL X 3D &bull; NEXT-GEN E-COMMERCE</span>
+      {/* 2. Hero Section (Calm, Apple-Grade Minimalism with Brushstroke X Drawing on Load) */}
+      <section className="relative min-h-[88vh] flex flex-col justify-center px-4 sm:px-8 max-w-7xl mx-auto w-full pt-8 pb-16">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+          {/* Left Column: Typography & Architectural Drawing */}
+          <div className="lg:col-span-7 space-y-8 text-left">
+            {/* Animated Brushstroke X drawing once on load */}
+            <div className="flex items-center gap-4">
+              <BrushstrokeX size={72} color="#141414" />
+              <div className="h-8 w-[1px] bg-hairline-light" />
+              <span className="font-heading text-xs tracking-apple-widest text-slate font-light uppercase">
+                Studio Edition 01 &bull; 2026
+              </span>
             </div>
 
-            <h1 className="text-4xl sm:text-6xl xl:text-7xl font-extrabold tracking-tight text-white leading-[1.08]">
-              PHYSICAL ARTIFACTS.{' '}
-              <span className="bg-gradient-to-r from-cyan via-blue-400 to-pink-500 bg-clip-text text-transparent">
-                DIGITAL
-              </span>{' '}
-              DIMENSIONS.
-            </h1>
+            {/* Heading: Jost light 300 with wide letter-spacing */}
+            <ScrollReveal delay={0.1}>
+              <h1 className="font-heading text-4xl sm:text-6xl xl:text-7xl font-light tracking-apple-wide text-ink leading-[1.08] uppercase">
+                Architectural <br />
+                Permanence.
+              </h1>
+            </ScrollReveal>
 
-            <p className="text-base sm:text-lg text-slate-300 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
-              Curated collector artifacts, ergonomic wearables, and kinetic desk sculptures manufactured via aerospace-grade 3D micro-SLA. Inspect every surface in real-time WebGL before ordering.
-            </p>
+            {/* Body: Inter font, slate secondary text */}
+            <ScrollReveal delay={0.25}>
+              <p className="font-sans text-sm sm:text-base text-slate max-w-lg leading-relaxed font-normal">
+                Tangible physical artifacts designed through parametric computation and fabricated via aerospace micro-stereolithography and laser-sintered nylon.
+              </p>
+            </ScrollReveal>
 
-            {/* CTA Buttons */}
-            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-2">
-              <Link href="#products">
-                <Button size="lg" className="gap-2.5 text-base px-8 py-6 shadow-xl">
-                  <span>Explore Artifacts</span>
-                  <ArrowRight className="w-5 h-5" />
-                </Button>
-              </Link>
-              <Link href="#studio">
-                <Button size="lg" variant="secondary" className="gap-2 text-base px-7 py-6">
-                  <Sliders className="w-5 h-5 text-cyan" />
-                  <span>3D Studio</span>
-                </Button>
-              </Link>
-            </div>
+            {/* Quiet Primary Button with wipe-in underline on hover */}
+            <ScrollReveal delay={0.4}>
+              <div className="flex flex-wrap items-center gap-8 pt-2">
+                <Link href="#shop">
+                  <QuietButton variant="light" size="lg">
+                    Discover Collection &rarr;
+                  </QuietButton>
+                </Link>
+                <Link href="#studio">
+                  <QuietButton variant="light" size="lg" className="text-slate hover:text-ink">
+                    Custom Studio
+                  </QuietButton>
+                </Link>
+              </div>
+            </ScrollReveal>
 
-            {/* Trust Stats */}
-            <div className="pt-6 border-t border-white/10 grid grid-cols-3 gap-4 max-w-lg mx-auto lg:mx-0 text-left">
-              <div>
-                <span className="text-xl sm:text-2xl font-black text-white font-mono block">
-                  12μm
-                </span>
-                <span className="text-xs text-slate-400">Micro Precision</span>
+            {/* Subtle engineering metrics */}
+            <ScrollReveal delay={0.55}>
+              <div className="pt-8 border-t border-hairline-light grid grid-cols-3 gap-6 max-w-md">
+                <div>
+                  <span className="font-heading text-lg sm:text-xl font-light tracking-wider text-ink block">
+                    12 μm
+                  </span>
+                  <span className="text-[11px] text-slate font-sans uppercase tracking-wider">
+                    Laser Pitch
+                  </span>
+                </div>
+                <div>
+                  <span className="font-heading text-lg sm:text-xl font-light tracking-wider text-ink block">
+                    PA12
+                  </span>
+                  <span className="text-[11px] text-slate font-sans uppercase tracking-wider">
+                    Sintered Nylon
+                  </span>
+                </div>
+                <div>
+                  <span className="font-heading text-lg sm:text-xl font-light tracking-wider text-ink block">
+                    1/100
+                  </span>
+                  <span className="text-[11px] text-slate font-sans uppercase tracking-wider">
+                    Numbered
+                  </span>
+                </div>
               </div>
-              <div>
-                <span className="text-xl sm:text-2xl font-black text-white font-mono block">
-                  100%
-                </span>
-                <span className="text-xs text-slate-400">On-Demand SLA</span>
-              </div>
-              <div>
-                <span className="text-xl sm:text-2xl font-black text-white font-mono block">
-                  48h
-                </span>
-                <span className="text-xs text-slate-400">Global Dispatch</span>
-              </div>
-            </div>
+            </ScrollReveal>
           </div>
 
-          {/* Right 3D Interactive Canvas */}
-          <div className="lg:col-span-5 w-full flex items-center justify-center">
-            <div className="w-full h-[460px] sm:h-[540px] rounded-3xl bg-slate-900/30 border border-white/10 relative overflow-hidden backdrop-blur-2xl shadow-2xl">
-              <HeroCanvas />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Bar */}
-      <FeaturesBar />
-
-      {/* Product Grid Catalog */}
-      <ProductGrid />
-
-      {/* 3D Studio & Customization Section */}
-      <section id="studio" className="py-24 px-4 bg-slate-950/60 border-t border-white/10 relative overflow-hidden">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          <div className="lg:col-span-6 space-y-6">
-            <div className="inline-flex items-center gap-2 text-xs font-mono text-pink-400 bg-pink-500/10 border border-pink-500/20 px-3 py-1 rounded-full">
-              <Layers className="w-3.5 h-3.5" />
-              <span>PARAMETRIC CUSTOMIZATION</span>
-            </div>
-
-            <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight">
-              Bring Your Own Geometry To Reality.
-            </h2>
-
-            <p className="text-slate-300 text-sm leading-relaxed">
-              Upload your proprietary 3D assets (<code className="text-cyan">.STL</code>, <code className="text-cyan">.OBJ</code>, <code className="text-cyan">.STEP</code>) or configure our modular parametric presets. Our automated slicing cloud verifies structural integrity and prints with laser micro-precision.
-            </p>
-
-            <div className="space-y-3">
-              {[
-                { title: 'Automated Mesh Validation', desc: 'Instant wall-thickness analysis and overhang validation.' },
-                { title: 'Material Swapping', desc: 'Switch between carbon lattice, sintered aluminum, and glow resins.' },
-                { title: 'Zero Minimum Order Quantity', desc: 'Single-piece bespoke fabrication at production tier prices.' },
-              ].map((feat, i) => (
-                <div key={i} className="flex items-start gap-3 p-3.5 rounded-2xl bg-slate-900/40 border border-white/5">
-                  <ShieldCheck className="w-5 h-5 text-cyan shrink-0 mt-0.5" />
-                  <div>
-                    <h5 className="text-sm font-semibold text-white">{feat.title}</h5>
-                    <p className="text-xs text-slate-400 mt-0.5">{feat.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <Link href="#products">
-              <Button size="lg" className="mt-2">
-                Order Custom 3D Prototype
-              </Button>
-            </Link>
-          </div>
-
-          <div className="lg:col-span-6">
-            <div className="p-8 rounded-3xl bg-slate-900/60 border border-white/10 backdrop-blur-2xl shadow-2xl relative space-y-6">
-              <div className="flex items-center justify-between pb-4 border-b border-white/10">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-red-500/80" />
-                  <div className="w-3 h-3 rounded-full bg-amber-500/80" />
-                  <div className="w-3 h-3 rounded-full bg-emerald-500/80" />
-                  <span className="text-xs font-mono text-slate-400 ml-2">LEVELX_3D_PRINT_KERNEL.v4</span>
-                </div>
-                <Badge variant="default">ONLINE</Badge>
-              </div>
-
-              <div className="space-y-4 font-mono text-xs">
-                <div className="flex justify-between py-2 border-b border-white/5">
-                  <span className="text-slate-400">Resin Tank Chemistry</span>
-                  <span className="text-cyan">Aerospace Polycarbonate Composite</span>
-                </div>
-                <div className="flex justify-between py-2 border-b border-white/5">
-                  <span className="text-slate-400">Laser Spot Size</span>
-                  <span className="text-white">35 μm Ultra-Fine</span>
-                </div>
-                <div className="flex justify-between py-2 border-b border-white/5">
-                  <span className="text-slate-400">Tensile Modulus</span>
-                  <span className="text-white">3,200 MPa</span>
-                </div>
-                <div className="flex justify-between py-2 border-b border-white/5">
-                  <span className="text-slate-400">Post-Process Finish</span>
-                  <span className="text-pink-400">Vapor Smooth + UV Anneal</span>
-                </div>
-              </div>
-
-              <div className="p-4 rounded-xl bg-cyan/10 border border-cyan/20 text-xs text-cyan flex items-center gap-3">
-                <Sparkles className="w-4 h-4 shrink-0" />
-                <span>Ready for instant production queue dispatch upon checkout.</span>
+          {/* Right Column: Restrained Monochrome 3D Canvas */}
+          <div className="lg:col-span-5 w-full">
+            <div className="relative rounded-2xl border border-hairline-light bg-[#EBE7DF]/40 overflow-hidden">
+              <HeroCanvas theme="light" />
+              <div className="absolute top-4 left-4 pointer-events-none">
+                <span className="text-[10px] font-mono tracking-apple-widest uppercase px-2.5 py-1 rounded-full bg-canvas/80 text-slate border border-hairline-light">
+                  Object 01 &bull; Torus Knot
+                </span>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Quiet scroll indicator */}
+        <div className="pt-12 flex justify-center">
+          <Link href="#showcase" aria-label="Scroll down">
+            <ArrowDown className="w-4 h-4 text-slate animate-bounce stroke-[1.2]" />
+          </Link>
+        </div>
       </section>
 
-      {/* Supabase Integration Ready Notice */}
-      <section className="py-12 px-4 max-w-7xl mx-auto w-full">
-        <div className="p-6 md:p-8 rounded-3xl bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border border-white/10 backdrop-blur-xl flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
-              <Database className="w-6 h-6" />
-            </div>
+      {/* 3. Component & Motion Showcase: Mobile vs Desktop Width Viewer */}
+      <section id="showcase" className="py-20 px-4 sm:px-8 border-t border-hairline-light bg-[#EBE7DF]/30">
+        <div className="max-w-7xl mx-auto">
+          {/* Header & Controls */}
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-12">
             <div>
-              <div className="flex items-center gap-2 mb-1">
-                <h3 className="text-lg font-bold text-white">
-                  Supabase Client Pre-Configured
-                </h3>
-                <Badge variant="secondary">Ready</Badge>
-              </div>
-              <p className="text-xs text-slate-400 max-w-2xl leading-relaxed">
-                The Supabase JS client is integrated in <code className="text-cyan">src/lib/supabase/client.ts</code>. Simply drop your live <code className="text-slate-200">NEXT_PUBLIC_SUPABASE_URL</code> and <code className="text-slate-200">NEXT_PUBLIC_SUPABASE_ANON_KEY</code> into <code className="text-cyan">.env.local</code> to synchronize products, orders, and customer authentication.
+              <span className="font-heading text-xs tracking-apple-widest text-slate font-light uppercase block mb-1">
+                Design & Motion System
+              </span>
+              <h2 className="font-heading text-2xl sm:text-3xl font-light tracking-apple-wide text-ink uppercase">
+                Interactive Card & Viewport Verification
+              </h2>
+              <p className="text-xs text-slate mt-1 max-w-lg font-sans">
+                Notice the self-drawing hairline border on scroll, gentle lift, and slight image zoom on hover. Toggle below to test responsive mobile (390px) and desktop behaviors.
               </p>
             </div>
+
+            {/* Mobile / Desktop Toggle Switch */}
+            <div className="inline-flex p-1 rounded-xl bg-canvas border border-hairline-light self-start sm:self-auto">
+              <button
+                onClick={() => setDevicePreviewWidth('desktop')}
+                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-heading font-light tracking-apple-wide transition-all ${
+                  devicePreviewWidth === 'desktop'
+                    ? 'bg-onyx text-chalk'
+                    : 'text-slate hover:text-ink'
+                }`}
+              >
+                <Monitor className="w-3.5 h-3.5 stroke-[1.5]" />
+                <span>Desktop Width</span>
+              </button>
+              <button
+                onClick={() => setDevicePreviewWidth('mobile')}
+                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-heading font-light tracking-apple-wide transition-all ${
+                  devicePreviewWidth === 'mobile'
+                    ? 'bg-onyx text-chalk'
+                    : 'text-slate hover:text-ink'
+                }`}
+              >
+                <Smartphone className="w-3.5 h-3.5 stroke-[1.5]" />
+                <span>Mobile Width (390px)</span>
+              </button>
+            </div>
           </div>
 
-          <div className="shrink-0 flex items-center gap-3">
-            <a
-              href="https://supabase.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-semibold border border-white/10 transition-colors"
+          {/* Interactive Responsive Sandbox Container */}
+          <div className="flex justify-center transition-all duration-500">
+            <div
+              className={`w-full transition-all duration-500 ${
+                devicePreviewWidth === 'mobile'
+                  ? 'max-w-[390px] border border-hairline-light rounded-[32px] p-4 bg-canvas shadow-2xl overflow-hidden'
+                  : 'max-w-7xl'
+              }`}
             >
-              <span>Supabase Docs</span>
-              <ExternalLink className="w-3.5 h-3.5" />
-            </a>
+              {devicePreviewWidth === 'mobile' && (
+                <div className="pb-3 mb-4 border-b border-hairline-light flex items-center justify-between text-[10px] font-mono text-slate">
+                  <span>Level X 3D &bull; Mobile Viewport</span>
+                  <span>390 &times; 844</span>
+                </div>
+              )}
+
+              {/* Sample Animated Cards within ScrollReveal */}
+              <ScrollReveal staggerChildren={0.12}>
+                <div
+                  className={`grid gap-6 ${
+                    devicePreviewWidth === 'mobile'
+                      ? 'grid-cols-1'
+                      : 'grid-cols-1 md:grid-cols-3'
+                  }`}
+                >
+                  <AnimatedCard
+                    title={sampleProduct.name}
+                    subtitle={sampleProduct.tagline}
+                    category={sampleProduct.category}
+                    price={sampleProduct.price}
+                    image={sampleProduct.image}
+                    theme="light"
+                    actionLabel="Add to Bag"
+                    onAction={() => addItem(sampleProduct)}
+                  />
+
+                  <AnimatedCard
+                    title={INITIAL_PRODUCTS[1].name}
+                    subtitle={INITIAL_PRODUCTS[1].tagline}
+                    category={INITIAL_PRODUCTS[1].category}
+                    price={INITIAL_PRODUCTS[1].price}
+                    image={INITIAL_PRODUCTS[1].image}
+                    theme="light"
+                    actionLabel="Add to Bag"
+                    onAction={() => addItem(INITIAL_PRODUCTS[1])}
+                  />
+
+                  <AnimatedCard
+                    title={INITIAL_PRODUCTS[2].name}
+                    subtitle={INITIAL_PRODUCTS[2].tagline}
+                    category={INITIAL_PRODUCTS[2].category}
+                    price={INITIAL_PRODUCTS[2].price}
+                    image={INITIAL_PRODUCTS[2].image}
+                    theme="light"
+                    actionLabel="Add to Bag"
+                    onAction={() => addItem(INITIAL_PRODUCTS[2])}
+                  />
+                </div>
+              </ScrollReveal>
+            </div>
           </div>
         </div>
       </section>
+
+      {/* 4. Complete Catalog Section (Light Section) */}
+      <section id="shop" className="py-24 px-4 sm:px-8 max-w-7xl mx-auto w-full">
+        <ScrollReveal>
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-14">
+            <div>
+              <span className="font-heading text-xs tracking-apple-widest text-slate font-light uppercase block mb-1">
+                Permanent Archive
+              </span>
+              <h2 className="font-heading text-3xl sm:text-4xl font-light tracking-apple-wide text-ink uppercase">
+                The 3D Collection
+              </h2>
+            </div>
+            <p className="text-xs text-slate max-w-xs font-sans">
+              Each piece is sequentially engraved and accompanied by an on-chain cryptographic certificate of authenticity.
+            </p>
+          </div>
+        </ScrollReveal>
+
+        <ScrollReveal staggerChildren={0.1}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {INITIAL_PRODUCTS.map((prod) => (
+              <AnimatedCard
+                key={prod.id}
+                title={prod.name}
+                subtitle={prod.tagline}
+                category={prod.category}
+                price={prod.price}
+                image={prod.image}
+                theme="light"
+                actionLabel="Order Object"
+                onAction={() => addItem(prod)}
+              />
+            ))}
+          </div>
+        </ScrollReveal>
+      </section>
+
+      {/* 5. Dark Section Showcase (Onyx #0B0B0B with Cream-on-Black Logo in /public/logo-dark.svg) */}
+      <section id="studio" className="w-full bg-onyx text-chalk py-28 px-4 sm:px-8 border-t border-hairline-dark">
+        <div className="max-w-7xl mx-auto space-y-20">
+          {/* Section Header using cream-on-black logo */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start border-b border-hairline-dark pb-16">
+            <div className="lg:col-span-5 space-y-4">
+              {/* Cream-on-Black Logo file from /public/logo-dark.svg */}
+              <div className="relative h-8 w-44">
+                <Image
+                  src="/logo-dark.svg"
+                  alt="Level X 3D Dark Theme Logo"
+                  fill
+                  className="object-contain object-left"
+                />
+              </div>
+              <span className="text-[11px] font-mono tracking-widest text-slate uppercase block">
+                Dark Mode Specification &bull; Onyx #0B0B0B
+              </span>
+            </div>
+
+            <div className="lg:col-span-7 space-y-4">
+              <h3 className="font-heading text-2xl sm:text-3xl font-light tracking-apple-wide text-chalk uppercase">
+                Custom Parametric Studio
+              </h3>
+              <p className="text-xs text-slate leading-relaxed max-w-xl font-sans">
+                Our fabrication lab ingests custom CAD files (<code className="text-chalk">.STL</code>, <code className="text-chalk">.STEP</code>, <code className="text-chalk">.OBJ</code>) directly into multi-axis stereolithography rigs. Monochromatic finishing with vapor-polished matte black or ceramic chalk.
+              </p>
+              <div className="pt-2">
+                <QuietButton variant="dark">
+                  Initiate Bespoke Ingestion &rarr;
+                </QuietButton>
+              </div>
+            </div>
+          </div>
+
+          {/* Dark Cards with Hairline #262626 drawing themselves */}
+          <div>
+            <div className="mb-10">
+              <span className="font-heading text-xs tracking-apple-widest text-slate font-light uppercase block mb-1">
+                Dark Hairline Frame Test
+              </span>
+              <h4 className="font-heading text-xl font-light tracking-apple-wide text-chalk uppercase">
+                Limited Dark Run &bull; Numbered Obsidian
+              </h4>
+            </div>
+
+            <ScrollReveal staggerChildren={0.12}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                <AnimatedCard
+                  title="Obsidian Neural Visor"
+                  subtitle="Biometric lattice headset in light-absorbent resin"
+                  category="Wearable"
+                  price={349}
+                  image={INITIAL_PRODUCTS[1].image}
+                  theme="dark"
+                  actionLabel="Acquire 1/50"
+                  onAction={() => addItem(INITIAL_PRODUCTS[1])}
+                />
+                <AnimatedCard
+                  title="Hyper-Tesseract Desk Artifact"
+                  subtitle="Internal refractive geometry frozen in sintered PA12"
+                  category="Desk Art"
+                  price={129}
+                  image={INITIAL_PRODUCTS[2].image}
+                  theme="dark"
+                  actionLabel="Acquire 1/100"
+                  onAction={() => addItem(INITIAL_PRODUCTS[2])}
+                />
+                <AnimatedCard
+                  title="Vortex Core Kinetic"
+                  subtitle="Silent magnetic induction levitation with matte obsidian core"
+                  category="Kinetic Art"
+                  price={189}
+                  image={INITIAL_PRODUCTS[0].image}
+                  theme="dark"
+                  actionLabel="Acquire 1/100"
+                  onAction={() => addItem(INITIAL_PRODUCTS[0])}
+                />
+              </div>
+            </ScrollReveal>
+          </div>
+        </div>
+      </section>
+
+      {/* 6. Footer (Onyx #0B0B0B, Newsletter, Link Columns, Monochrome Payment Icons) */}
+      <Footer />
     </div>
   );
 }

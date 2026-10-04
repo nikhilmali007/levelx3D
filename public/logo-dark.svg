@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 50" fill="none">
+  <!-- Brushstroke / Architectural X Mark in Chalk #F3F1EC -->
+  <g stroke="#F3F1EC" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M14 11 C18 19, 28 31, 36 39 M16 13 C22 21, 30 30, 34 37" opacity="0.95" />
+    <path d="M36 11 C28 20, 20 31, 14 39 M34 13 C27 22, 19 32, 16 37" opacity="0.95" />
+  </g>
+  <!-- Wordmark: LEVEL X 3D in Jost light letter-spaced style -->
+  <text x="56" y="32" fill="#F3F1EC" font-family="'Jost', 'Helvetica Neue', sans-serif" font-weight="300" font-size="19" letter-spacing="0.22em">
+    LEVEL X 3D
+  </text>
+</svg>
