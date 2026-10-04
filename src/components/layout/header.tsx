@@ -25,10 +25,10 @@ export function Header({ theme = 'light', onSearchClick }: HeaderProps) {
     : 'bg-onyx/85 backdrop-blur-xl';
 
   const NAV_LINKS = [
-    { label: 'Shop', href: '#shop' },
-    { label: 'Premium', href: '#premium' },
-    { label: 'Custom Studio', href: '#studio' },
-    { label: 'About', href: '#about' },
+    { label: 'Shop', href: '/shop' },
+    { label: 'Premium', href: '/shop/signature-premium' },
+    { label: 'Custom Studio', href: '/#studio' },
+    { label: 'About', href: '/#about' },
   ];
 
   return (
