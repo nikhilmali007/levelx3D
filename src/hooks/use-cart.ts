@@ -41,15 +41,19 @@ export function useCart() {
     } catch (e) {}
   };
 
-  const addItem = (product: Product, quantity = 1) => {
-    const existingIndex = items.findIndex((i) => i.product.id === product.id);
+  const addItem = (product: Product, quantity = 1, selectedOptions?: Record<string, string>) => {
+    // If customized options differ, create separate cart item or match options
+    const optionsKey = selectedOptions ? JSON.stringify(selectedOptions) : '';
+    const existingIndex = items.findIndex(
+      (i) => i.product.id === product.id && JSON.stringify(i.selectedOptions || '') === optionsKey
+    );
     let updated: CartItem[];
 
     if (existingIndex > -1) {
       updated = [...items];
       updated[existingIndex].quantity += quantity;
     } else {
-      updated = [...items, { product, quantity }];
+      updated = [...items, { product, quantity, selectedOptions }];
     }
 
     saveItems(updated);

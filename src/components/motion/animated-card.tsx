@@ -6,7 +6,10 @@ import { motion, useReducedMotion } from 'framer-motion';
 import { formatPrice } from '@/lib/utils';
 import { QuietButton } from '@/components/ui/quiet-button';
 
+import Link from 'next/link';
+
 interface AnimatedCardProps {
+  href?: string;
   title: string;
   subtitle?: string;
   category?: string;
@@ -21,6 +24,7 @@ interface AnimatedCardProps {
 }
 
 export function AnimatedCard({
+  href,
   title,
   subtitle,
   category,
@@ -80,44 +84,87 @@ export function AnimatedCard({
       </svg>
 
       {/* Image Container with Gentle Zoom on Hover */}
-      <div
-        className={`relative w-full overflow-hidden ${
-          aspectRatio === 'square'
-            ? 'aspect-square'
-            : aspectRatio === 'portrait'
-            ? 'aspect-[4/5]'
-            : 'aspect-[16/10]'
-        } ${isLight ? 'bg-[#ECE9E2]' : 'bg-[#121212]'}`}
-      >
-        <Image
-          src={image}
-          alt={title}
-          fill
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          className="object-cover transition-transform duration-500 ease-apple-out group-hover:scale-[1.04]"
-        />
+      {href ? (
+        <Link
+          href={href}
+          className={`relative block w-full overflow-hidden cursor-pointer ${
+            aspectRatio === 'square'
+              ? 'aspect-square'
+              : aspectRatio === 'portrait'
+              ? 'aspect-[4/5]'
+              : 'aspect-[16/10]'
+          } ${isLight ? 'bg-[#ECE9E2]' : 'bg-[#121212]'}`}
+        >
+          <Image
+            src={image}
+            alt={title}
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            className="object-cover transition-transform duration-500 ease-apple-out group-hover:scale-[1.04]"
+          />
 
-        {category && (
-          <div className="absolute top-4 left-4 z-10">
-            <span
-              className={`text-[10px] font-mono tracking-apple-widest uppercase px-2.5 py-1 rounded-full backdrop-blur-md border ${
-                isLight
-                  ? 'bg-canvas/80 text-ink border-hairline-light'
-                  : 'bg-onyx/80 text-chalk border-hairline-dark'
-              }`}
-            >
-              {category}
-            </span>
-          </div>
-        )}
-      </div>
+          {category && (
+            <div className="absolute top-4 left-4 z-10">
+              <span
+                className={`text-[10px] font-mono tracking-apple-widest uppercase px-2.5 py-1 rounded-full backdrop-blur-md border ${
+                  isLight
+                    ? 'bg-canvas/80 text-ink border-hairline-light'
+                    : 'bg-onyx/80 text-chalk border-hairline-dark'
+                }`}
+              >
+                {category}
+              </span>
+            </div>
+          )}
+        </Link>
+      ) : (
+        <div
+          className={`relative w-full overflow-hidden ${
+            aspectRatio === 'square'
+              ? 'aspect-square'
+              : aspectRatio === 'portrait'
+              ? 'aspect-[4/5]'
+              : 'aspect-[16/10]'
+          } ${isLight ? 'bg-[#ECE9E2]' : 'bg-[#121212]'}`}
+        >
+          <Image
+            src={image}
+            alt={title}
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            className="object-cover transition-transform duration-500 ease-apple-out group-hover:scale-[1.04]"
+          />
+
+          {category && (
+            <div className="absolute top-4 left-4 z-10">
+              <span
+                className={`text-[10px] font-mono tracking-apple-widest uppercase px-2.5 py-1 rounded-full backdrop-blur-md border ${
+                  isLight
+                    ? 'bg-canvas/80 text-ink border-hairline-light'
+                    : 'bg-onyx/80 text-chalk border-hairline-dark'
+                }`}
+              >
+                {category}
+              </span>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Card Content Details */}
       <div className="p-6 sm:p-7 flex-1 flex flex-col justify-between space-y-4 relative z-10">
         <div>
-          <h3 className="font-heading text-lg sm:text-xl font-light tracking-apple-wide mb-1 leading-snug">
-            {title}
-          </h3>
+          {href ? (
+            <Link href={href}>
+              <h3 className="font-heading text-lg sm:text-xl font-light tracking-apple-wide mb-1 leading-snug hover:opacity-75 transition-opacity">
+                {title}
+              </h3>
+            </Link>
+          ) : (
+            <h3 className="font-heading text-lg sm:text-xl font-light tracking-apple-wide mb-1 leading-snug">
+              {title}
+            </h3>
+          )}
           {subtitle && (
             <p className={`text-xs ${subtextColor} leading-relaxed line-clamp-2`}>
               {subtitle}

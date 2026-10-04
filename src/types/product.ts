@@ -19,10 +19,12 @@ export interface Product {
     finish: string;
     dimensions: string;
   };
+  slug?: string;
 }
 
 export interface CartItem {
   product: Product;
   quantity: number;
   selectedColor?: string;
+  selectedOptions?: Record<string, string>;
 }

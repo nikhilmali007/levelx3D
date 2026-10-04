@@ -212,6 +212,7 @@ export function ShopCatalogView({
             {filteredProducts.map((product) => (
               <AnimatedCard
                 key={product.id}
+                href={`/product/${product.slug}`}
                 title={product.name}
                 subtitle={product.tagline}
                 category={product.category}

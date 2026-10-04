@@ -211,8 +211,24 @@ export const SHELVES_DATA = [
   },
 ];
 
+export interface ProductOptionValue {
+  label?: string;
+  value?: string;
+  placeholder?: string;
+  maxLength?: number;
+  priceDeltaInr?: number;
+}
+
+export interface ProductOption {
+  id?: string;
+  name: string;
+  type: 'color' | 'select' | 'text' | 'radio';
+  values: ProductOptionValue[];
+}
+
 export interface Product {
   id: string;
+  slug: string;
   name: string;
   tagline: string;
   description: string;
@@ -226,8 +242,12 @@ export interface Product {
   reviewsCount: number;
   badge?: string;
   image: string;
+  images?: string[];
+  isCustomizable?: boolean;
+  options?: ProductOption[];
   geometryType: 'torus' | 'sphere' | 'cyber-cube' | 'prism' | 'headset';
   inStock: boolean;
+  stock?: number;
   specs: {
     material: string;
     resolution: string;
@@ -242,6 +262,7 @@ export const INITIAL_PRODUCTS: Product[] = [
   // Signature / Premium Shelf (6 products)
   {
     id: 'prem-01',
+    slug: 'lumina-voronoi-designer-lamp',
     name: 'Lumina Voronoi Signature Designer Lamp',
     tagline: 'Parametric Voronoi cellular shell with touch warm LED diffusion',
     description: 'Architectural ambient table lamp featuring a generative Voronoi cellular shell. 3D printed with heat-resistant matte ceramic polymer, integrated with touch-dimming warm LED core (2700K).',
@@ -254,9 +275,42 @@ export const INITIAL_PRODUCTS: Product[] = [
     rating: 5.0,
     reviewsCount: 48,
     badge: 'Signature',
-    image: 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=1000&auto=format&fit=crop&q=85',
+    image: 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=1200&auto=format&fit=crop&q=85',
+    images: [
+      'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=1200&auto=format&fit=crop&q=85',
+      'https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?w=1200&auto=format&fit=crop&q=85',
+      'https://images.unsplash.com/photo-1540932239986-30128078f3c5?w=1200&auto=format&fit=crop&q=85',
+      'https://images.unsplash.com/photo-1517991104123-1d56a6e81ed9?w=1200&auto=format&fit=crop&q=85',
+    ],
     geometryType: 'torus',
     inStock: true,
+    stock: 15,
+    isCustomizable: true,
+    options: [
+      {
+        name: 'Ceramic Finish Tone',
+        type: 'color',
+        values: [
+          { label: 'Obsidian Black', value: '#0B0B0B' },
+          { label: 'Chalk Cream', value: '#F3F1EC' },
+          { label: 'Slate Smoke', value: '#6E6E6E' },
+        ],
+      },
+      {
+        name: 'Light Temperature',
+        type: 'select',
+        values: [
+          { label: 'Warm Candlelight (2200K)', value: '2200K' },
+          { label: 'Studio Warm White (2700K)', value: '2700K' },
+          { label: 'Architectural Neutral (4000K)', value: '4000K' },
+        ],
+      },
+      {
+        name: 'Laser Engraved Studio Monogram',
+        type: 'text',
+        values: [{ placeholder: 'Initials or Serial (e.g. LX-01)', maxLength: 20 }],
+      },
+    ],
     specs: {
       material: 'Heat-Resistant Ceramic SLA Composite',
       resolution: '25 Microns',
@@ -267,6 +321,7 @@ export const INITIAL_PRODUCTS: Product[] = [
   },
   {
     id: 'prem-02',
+    slug: 'aura-geometrique-luxury-handbag',
     name: 'Aura Geometrique Luxury Handbag',
     tagline: 'Parametric rigid lattice bag with aerospace magnetic hinges',
     description: 'Parametric rigid lattice handbag fabricated via Selective Laser Sintering (SLS) nylon PA12. Equipped with aerospace neodymium magnetic snap clasps, hand-stitched interior liner, and detachable chain.',
@@ -279,9 +334,39 @@ export const INITIAL_PRODUCTS: Product[] = [
     rating: 4.9,
     reviewsCount: 31,
     badge: 'Limited Run',
-    image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=1000&auto=format&fit=crop&q=85',
+    image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=1200&auto=format&fit=crop&q=85',
+    images: [
+      'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=1200&auto=format&fit=crop&q=85',
+      'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=1200&auto=format&fit=crop&q=85',
+      'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=1200&auto=format&fit=crop&q=85',
+    ],
     geometryType: 'cyber-cube',
     inStock: true,
+    stock: 8,
+    isCustomizable: true,
+    options: [
+      {
+        name: 'Exterior Lattice Tone',
+        type: 'color',
+        values: [
+          { label: 'Matte Onyx', value: '#0B0B0B' },
+          { label: 'Ceramic Canvas', value: '#F3F1EC' },
+        ],
+      },
+      {
+        name: 'Hardware Clasp Finish',
+        type: 'select',
+        values: [
+          { label: 'Gunmetal Titanium', value: 'gunmetal' },
+          { label: 'Brushed Silver', value: 'silver' },
+        ],
+      },
+      {
+        name: 'Personalized Monogram',
+        type: 'text',
+        values: [{ placeholder: 'Initials (e.g. N.M.)', maxLength: 4 }],
+      },
+    ],
     specs: {
       material: 'Sintered Nylon PA12 & Vegan Leather',
       resolution: '50 Microns SLS',
@@ -292,6 +377,7 @@ export const INITIAL_PRODUCTS: Product[] = [
   },
   {
     id: 'prem-03',
+    slug: 'maha-mandir-bespoke-temple',
     name: 'Maha-Mandir Bespoke Custom Temple',
     tagline: 'Sacred architectural sanctuary with micro-sintered jali carvings',
     description: 'Sacred home sanctuary manufactured with micro-sintered jali fretwork and stone-composite polymer. Features concealed LED halo backlighting, pull-out bhog tray, and customizable deity niche dimensions.',
@@ -304,9 +390,40 @@ export const INITIAL_PRODUCTS: Product[] = [
     rating: 5.0,
     reviewsCount: 19,
     badge: 'Bespoke Order',
-    image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1000&auto=format&fit=crop&q=85',
+    image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&auto=format&fit=crop&q=85',
+    images: [
+      'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&auto=format&fit=crop&q=85',
+      'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=1200&auto=format&fit=crop&q=85',
+      'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=1200&auto=format&fit=crop&q=85',
+    ],
     geometryType: 'prism',
     inStock: true,
+    stock: 5,
+    isCustomizable: true,
+    options: [
+      {
+        name: 'Sanctuary Scale',
+        type: 'select',
+        values: [
+          { label: 'Compact Studio (2.5 ft x 2 ft)', value: 'compact' },
+          { label: 'Grand Mandir (3.5 ft x 2.5 ft)', value: 'grand' },
+        ],
+      },
+      {
+        name: 'Backlit Jali Lattice Motif',
+        type: 'select',
+        values: [
+          { label: 'Sacred Lotus Lattice', value: 'lotus' },
+          { label: 'Geometric Om Mandala', value: 'mandala' },
+          { label: 'Minimalist Chevron', value: 'chevron' },
+        ],
+      },
+      {
+        name: 'Family Inscription Plaque',
+        type: 'text',
+        values: [{ placeholder: 'Family Name or Shloka (e.g. The Mali Residence)', maxLength: 36 }],
+      },
+    ],
     specs: {
       material: 'Direct Stone Composite & Laser Sintered Jali',
       resolution: '30 Microns',
@@ -317,6 +434,7 @@ export const INITIAL_PRODUCTS: Product[] = [
   },
   {
     id: 'prem-04',
+    slug: 'porsche-911-gt3-rs-wall-frame',
     name: 'Porsche 911 GT3 RS 3D Car Frame Wall Art',
     tagline: 'Aerodynamic half-scale supercar relief in anodized museum frame',
     description: 'Half-scale high-precision aerodynamic body sculpture emerging from a matte black aluminum gallery frame. Laser-sintered curves with technical CAD drafting blueprint background and museum acrylic cover.',
@@ -329,9 +447,40 @@ export const INITIAL_PRODUCTS: Product[] = [
     rating: 4.9,
     reviewsCount: 64,
     badge: 'Collector',
-    image: 'https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?w=1000&auto=format&fit=crop&q=85',
+    image: 'https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?w=1200&auto=format&fit=crop&q=85',
+    images: [
+      'https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?w=1200&auto=format&fit=crop&q=85',
+      'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1200&auto=format&fit=crop&q=85',
+      'https://images.unsplash.com/photo-1611821064430-0d40291d0f0b?w=1200&auto=format&fit=crop&q=85',
+    ],
     geometryType: 'headset',
     inStock: true,
+    stock: 12,
+    isCustomizable: true,
+    options: [
+      {
+        name: 'Relief Silhouette Shade',
+        type: 'color',
+        values: [
+          { label: 'Matte Onyx', value: '#0B0B0B' },
+          { label: 'Chalk White', value: '#F3F1EC' },
+          { label: 'Slate Shadow', value: '#6E6E6E' },
+        ],
+      },
+      {
+        name: 'Frame Finish',
+        type: 'select',
+        values: [
+          { label: 'Anodized Black Aluminum', value: 'black-aluminum' },
+          { label: 'Raw Brushed Titanium', value: 'titanium' },
+        ],
+      },
+      {
+        name: 'Chassis Plaque Laser Engraving',
+        type: 'text',
+        values: [{ placeholder: 'e.g. 01/50 — NIKHIL MALI SPECIAL EDITION', maxLength: 32 }],
+      },
+    ],
     specs: {
       material: 'Aero Polymer Shell & Anodized Aluminum',
       resolution: '20 Microns High-Def',
@@ -342,6 +491,7 @@ export const INITIAL_PRODUCTS: Product[] = [
   },
   {
     id: 'prem-05',
+    slug: 'ethereal-monolith-wall-sculpture',
     name: 'Ethereal Monolith Topographical Wall Sculpture',
     tagline: 'Parametric fluid wave sculpture with acoustic wave chambers',
     description: 'Parametric fluid wave sculpture crafted through multi-axis laser sintering. Designed with interior acoustic sound-dampening hollow chambers and finished in vapor-smoothed chalk obsidian finish.',
@@ -354,9 +504,39 @@ export const INITIAL_PRODUCTS: Product[] = [
     rating: 4.8,
     reviewsCount: 27,
     badge: 'Architectural',
-    image: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=1000&auto=format&fit=crop&q=85',
+    image: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=1200&auto=format&fit=crop&q=85',
+    images: [
+      'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=1200&auto=format&fit=crop&q=85',
+      'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=1200&auto=format&fit=crop&q=85',
+      'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=1200&auto=format&fit=crop&q=85',
+    ],
     geometryType: 'sphere',
     inStock: true,
+    stock: 10,
+    isCustomizable: true,
+    options: [
+      {
+        name: 'Acoustic Sintered Tone',
+        type: 'color',
+        values: [
+          { label: 'Vapor Chalk White', value: '#F3F1EC' },
+          { label: 'Obsidian Smoke', value: '#0B0B0B' },
+        ],
+      },
+      {
+        name: 'Mounting Orientation',
+        type: 'select',
+        values: [
+          { label: 'Vertical Pillar (120cm x 40cm)', value: 'vertical' },
+          { label: 'Horizontal Wave (40cm x 120cm)', value: 'horizontal' },
+        ],
+      },
+      {
+        name: 'Bespoke Dimension Note',
+        type: 'text',
+        values: [{ placeholder: 'Wall bracket / offset request', maxLength: 40 }],
+      },
+    ],
     specs: {
       material: 'Laser-Sintered Acoustic Nylon Matrix',
       resolution: '40 Microns',
@@ -367,6 +547,7 @@ export const INITIAL_PRODUCTS: Product[] = [
   },
   {
     id: 'prem-06',
+    slug: 'curved-panorama-lithophane-art',
     name: 'Curved Panorama Bespoke Lithophane Art Frame',
     tagline: 'High-density micro-photopolymer backlit photo relief',
     description: 'Custom panoramic photo relief printed with 12-micron high-density photopolymer. Seamlessly reveals lifelike photographic contrast and warm grayscale shadows when backlit by the integrated touch base.',
@@ -379,9 +560,39 @@ export const INITIAL_PRODUCTS: Product[] = [
     rating: 5.0,
     reviewsCount: 82,
     badge: 'Personalized',
-    image: 'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=1000&auto=format&fit=crop&q=85',
+    image: 'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=1200&auto=format&fit=crop&q=85',
+    images: [
+      'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=1200&auto=format&fit=crop&q=85',
+      'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=1200&auto=format&fit=crop&q=85',
+      'https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?w=1200&auto=format&fit=crop&q=85',
+    ],
     geometryType: 'torus',
     inStock: true,
+    stock: 25,
+    isCustomizable: true,
+    options: [
+      {
+        name: 'Pedestal Wood Type',
+        type: 'select',
+        values: [
+          { label: 'Smoked Dark Walnut', value: 'walnut' },
+          { label: 'Natural Nordic Birch', value: 'birch' },
+        ],
+      },
+      {
+        name: 'Backlight Temperature',
+        type: 'select',
+        values: [
+          { label: 'Warm 2400K Candlelight', value: '2400K' },
+          { label: 'Neutral 3500K Studio', value: '3500K' },
+        ],
+      },
+      {
+        name: 'Engraved Pedestal Base Date / Dedication',
+        type: 'text',
+        values: [{ placeholder: 'e.g. In Commemoration — 2026', maxLength: 30 }],
+      },
+    ],
     specs: {
       material: 'Ultra-Fine 12μm Optical Photopolymer',
       resolution: '12 Microns Micro-SLA',
@@ -394,6 +605,7 @@ export const INITIAL_PRODUCTS: Product[] = [
   // Lighting Shelf (2 products)
   {
     id: 'light-01',
+    slug: 'apollo-precision-lunar-lamp',
     name: 'Apollo Precision Lunar Orb Lamp',
     tagline: 'Topographically mapped moon lamp with hidden dual-spectrum LEDs',
     description: 'High-resolution lunar sphere with scientifically verified topography derived from NASA lunar reconnaissance orbital data. Fitted with magnetic touch-docking base.',
@@ -406,9 +618,15 @@ export const INITIAL_PRODUCTS: Product[] = [
     rating: 4.9,
     reviewsCount: 114,
     badge: 'Best Seller',
-    image: 'https://images.unsplash.com/photo-1532767153582-b1a0e5145009?w=1000&auto=format&fit=crop&q=85',
+    image: 'https://images.unsplash.com/photo-1532767153582-b1a0e5145009?w=1200&auto=format&fit=crop&q=85',
+    images: [
+      'https://images.unsplash.com/photo-1532767153582-b1a0e5145009?w=1200&auto=format&fit=crop&q=85',
+      'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=1200&auto=format&fit=crop&q=85',
+    ],
     geometryType: 'sphere',
     inStock: true,
+    stock: 40,
+    isCustomizable: false,
     specs: {
       material: 'Biodegradable PLA Silk Polymer',
       resolution: '50 Microns',
@@ -419,6 +637,7 @@ export const INITIAL_PRODUCTS: Product[] = [
   },
   {
     id: 'light-02',
+    slug: 'zenith-minimalist-table-lamp',
     name: 'Zenith Minimalist Monolith Table Lamp',
     tagline: 'Fluted architectural table lantern with warm diffusion',
     description: 'Cast with architectural fluting and a hollow spiral light tunnel. Emits a gentle 360-degree ambient halo without harsh glare.',
@@ -431,9 +650,15 @@ export const INITIAL_PRODUCTS: Product[] = [
     rating: 4.8,
     reviewsCount: 56,
     badge: 'New Arrival',
-    image: 'https://images.unsplash.com/photo-1540932239986-30128078f3c5?w=1000&auto=format&fit=crop&q=85',
+    image: 'https://images.unsplash.com/photo-1540932239986-30128078f3c5?w=1200&auto=format&fit=crop&q=85',
+    images: [
+      'https://images.unsplash.com/photo-1540932239986-30128078f3c5?w=1200&auto=format&fit=crop&q=85',
+      'https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?w=1200&auto=format&fit=crop&q=85',
+    ],
     geometryType: 'prism',
     inStock: true,
+    stock: 20,
+    isCustomizable: false,
     specs: {
       material: 'Ceramic Composite Resin',
       resolution: '30 Microns',
@@ -446,6 +671,7 @@ export const INITIAL_PRODUCTS: Product[] = [
   // Home Decor Shelf (2 products)
   {
     id: 'home-01',
+    slug: 'voronoi-spiral-amphora-vase',
     name: 'Voronoi Spiral Watertight Amphora Vase',
     tagline: 'Parametric architectural vessel for botanical stems',
     description: 'Generative spiral form engineered with thick internal watertight barrier walls. Beautiful as an independent sculpture or botanical vessel.',
@@ -458,9 +684,38 @@ export const INITIAL_PRODUCTS: Product[] = [
     rating: 4.9,
     reviewsCount: 92,
     badge: 'Editor Choice',
-    image: 'https://images.unsplash.com/photo-1581783342308-f792dbdd27c5?w=1000&auto=format&fit=crop&q=85',
+    image: 'https://images.unsplash.com/photo-1581783342308-f792dbdd27c5?w=1200&auto=format&fit=crop&q=85',
+    images: [
+      'https://images.unsplash.com/photo-1581783342308-f792dbdd27c5?w=1200&auto=format&fit=crop&q=85',
+      'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=1200&auto=format&fit=crop&q=85',
+    ],
     geometryType: 'torus',
     inStock: true,
+    stock: 18,
+    isCustomizable: true,
+    options: [
+      {
+        name: 'Ceramic Tone',
+        type: 'color',
+        values: [
+          { label: 'Satin Obsidian', value: '#0B0B0B' },
+          { label: 'Matte Chalk White', value: '#F3F1EC' },
+        ],
+      },
+      {
+        name: 'Vessel Scale',
+        type: 'select',
+        values: [
+          { label: 'Tabletop 260mm', value: 'standard' },
+          { label: 'Floor Statement 420mm', value: 'oversized' },
+        ],
+      },
+      {
+        name: 'Base Stamp Text',
+        type: 'text',
+        values: [{ placeholder: 'Studio seal or name', maxLength: 16 }],
+      },
+    ],
     specs: {
       material: 'Hydrophobic Ceramic Infused Polymer',
       resolution: '40 Microns',
@@ -471,6 +726,7 @@ export const INITIAL_PRODUCTS: Product[] = [
   },
   {
     id: 'home-02',
+    slug: 'brutalist-silent-radial-clock',
     name: 'Brutalist Silent Radial Desk Clock',
     tagline: 'Deep-set shadowed numerals with silent sweep mechanism',
     description: 'Minimalist radial timepiece featuring faceted hour wedges and high-torque silent quartz movement. No ticking, pure serenity.',
@@ -483,9 +739,15 @@ export const INITIAL_PRODUCTS: Product[] = [
     rating: 5.0,
     reviewsCount: 41,
     badge: 'Minimalist',
-    image: 'https://images.unsplash.com/photo-1563861826100-9cb868fdbe1c?w=1000&auto=format&fit=crop&q=85',
+    image: 'https://images.unsplash.com/photo-1563861826100-9cb868fdbe1c?w=1200&auto=format&fit=crop&q=85',
+    images: [
+      'https://images.unsplash.com/photo-1563861826100-9cb868fdbe1c?w=1200&auto=format&fit=crop&q=85',
+      'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=1200&auto=format&fit=crop&q=85',
+    ],
     geometryType: 'cyber-cube',
     inStock: true,
+    stock: 30,
+    isCustomizable: false,
     specs: {
       material: 'Stone Composite Sintered Resin',
       resolution: '35 Microns',
@@ -498,6 +760,7 @@ export const INITIAL_PRODUCTS: Product[] = [
   // Desk & Office Shelf (1 product)
   {
     id: 'desk-01',
+    slug: 'aero-arch-headphone-pedestal',
     name: 'Aero-Arch Dual-Material Headphone Pedestal',
     tagline: 'Sculptural headphone arch with weighted steel base',
     description: 'Curved to match ergonomic headband contours preventing foam compression. Heavy concealed base provides stable single-handed docking.',
@@ -510,9 +773,15 @@ export const INITIAL_PRODUCTS: Product[] = [
     rating: 4.9,
     reviewsCount: 77,
     badge: 'Desk Setup',
-    image: 'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=1000&auto=format&fit=crop&q=85',
+    image: 'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=1200&auto=format&fit=crop&q=85',
+    images: [
+      'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=1200&auto=format&fit=crop&q=85',
+      'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=1200&auto=format&fit=crop&q=85',
+    ],
     geometryType: 'headset',
     inStock: true,
+    stock: 35,
+    isCustomizable: false,
     specs: {
       material: 'Carbon Lattice & Steel Counterweight',
       resolution: '30 Microns',
@@ -525,6 +794,7 @@ export const INITIAL_PRODUCTS: Product[] = [
   // Devotional Shelf (1 product)
   {
     id: 'devo-01',
+    slug: 'serene-parametric-ganesha-idol',
     name: 'Serene Parametric Ganesha Divine Idol',
     tagline: 'Modern architectural sacred form crafted in pure chalk marble resin',
     description: 'Graceful flowing facets evoking timeless divinity with contemporary minimalist restraint. Coated in non-porous ceremonial protective sealant.',
@@ -537,9 +807,30 @@ export const INITIAL_PRODUCTS: Product[] = [
     rating: 5.0,
     reviewsCount: 153,
     badge: 'Divine',
-    image: 'https://images.unsplash.com/photo-1567591414240-e14b2d5f3089?w=1000&auto=format&fit=crop&q=85',
+    image: 'https://images.unsplash.com/photo-1567591414240-e14b2d5f3089?w=1200&auto=format&fit=crop&q=85',
+    images: [
+      'https://images.unsplash.com/photo-1567591414240-e14b2d5f3089?w=1200&auto=format&fit=crop&q=85',
+      'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&auto=format&fit=crop&q=85',
+    ],
     geometryType: 'prism',
     inStock: true,
+    stock: 22,
+    isCustomizable: true,
+    options: [
+      {
+        name: 'Micro-SLA Finish Tone',
+        type: 'color',
+        values: [
+          { label: 'Pristine Chalk White', value: '#F3F1EC' },
+          { label: 'Deep Basalt Onyx', value: '#0B0B0B' },
+        ],
+      },
+      {
+        name: 'Consecration Pedestal Text',
+        type: 'text',
+        values: [{ placeholder: 'Name or Auspicious Date', maxLength: 25 }],
+      },
+    ],
     specs: {
       material: 'Marble-Infused Micro-SLA Resin',
       resolution: '20 Microns Ultra-Fine',
