@@ -10,8 +10,22 @@ export interface CategoryItem {
   sort_order: number;
 }
 
+export function shelfToSlug(shelf: string): string {
+  const found = SHELVES_DATA.find((s) => s.shelf.toLowerCase() === shelf.toLowerCase());
+  if (found) return found.slug;
+  return shelf
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+}
+
+export function slugToShelf(slug: string): string | null {
+  const found = SHELVES_DATA.find((s) => s.slug.toLowerCase() === slug.toLowerCase());
+  return found ? found.shelf : null;
+}
+
 export async function getStoreCategories(): Promise<{
-  shelves: { shelf: string; categories: { name: string; slug: string; description?: string }[] }[];
+  shelves: typeof SHELVES_DATA;
   flatCategories: CategoryItem[];
 }> {
   if (isSupabaseConfigured) {
@@ -22,24 +36,7 @@ export async function getStoreCategories(): Promise<{
         .order('sort_order', { ascending: true });
 
       if (!error && data && data.length > 0) {
-        // Group by shelf
-        const shelfMap = new Map<string, { name: string; slug: string; description?: string }[]>();
-        data.forEach((cat) => {
-          const s = cat.shelf || 'General';
-          if (!shelfMap.has(s)) shelfMap.set(s, []);
-          shelfMap.get(s)!.push({
-            name: cat.name,
-            slug: cat.slug,
-            description: cat.description || undefined,
-          });
-        });
-
-        const shelves = Array.from(shelfMap.entries()).map(([shelf, categories]) => ({
-          shelf,
-          categories,
-        }));
-
-        return { shelves, flatCategories: data as CategoryItem[] };
+        return { shelves: SHELVES_DATA, flatCategories: data as CategoryItem[] };
       }
     } catch (e) {
       console.warn('Could not fetch categories from Supabase, using seeded data.', e);
@@ -65,7 +62,22 @@ export async function getStoreCategories(): Promise<{
   return { shelves: SHELVES_DATA, flatCategories };
 }
 
-export async function getFeaturedProducts(): Promise<Product[]> {
+export async function getCategoryDetails(slug: string) {
+  const { flatCategories, shelves } = await getStoreCategories();
+  const cat = flatCategories.find((c) => c.slug.toLowerCase() === slug.toLowerCase());
+  if (!cat) return null;
+  const shelf = shelves.find((s) => s.shelf.toLowerCase() === cat.shelf.toLowerCase());
+  return {
+    category: cat,
+    shelf: shelf || {
+      shelf: cat.shelf,
+      slug: shelfToSlug(cat.shelf),
+      categories: [],
+    },
+  };
+}
+
+export async function getAllProducts(): Promise<Product[]> {
   if (isSupabaseConfigured) {
     try {
       const { data, error } = await supabase
@@ -81,7 +93,8 @@ export async function getFeaturedProducts(): Promise<Product[]> {
           is_premium,
           stock,
           status,
-          categories(name, shelf),
+          created_at,
+          categories(name, slug, shelf),
           product_images(url, alt, sort_order)
         `)
         .eq('status', 'active')
@@ -94,6 +107,10 @@ export async function getFeaturedProducts(): Promise<Product[]> {
               ? p.product_images[0].url
               : 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=1000&auto=format&fit=crop&q=85';
 
+          const catName = p.categories?.name || 'Artifacts';
+          const catSlug = p.categories?.slug || 'artifacts';
+          const shelfName = p.categories?.shelf || 'Signature / Premium';
+
           return {
             id: p.id,
             name: p.name,
@@ -101,8 +118,10 @@ export async function getFeaturedProducts(): Promise<Product[]> {
             description: p.description || '',
             price: Number(p.price_inr),
             originalPrice: p.compare_at_price_inr ? Number(p.compare_at_price_inr) : undefined,
-            category: p.categories?.name || 'Signature',
-            shelf: p.categories?.shelf || 'Signature / Premium',
+            category: catName,
+            categorySlug: catSlug,
+            shelf: shelfName,
+            shelfSlug: shelfToSlug(shelfName),
             rating: 5.0,
             reviewsCount: 35,
             badge: p.is_premium ? 'Signature' : undefined,
@@ -115,14 +134,64 @@ export async function getFeaturedProducts(): Promise<Product[]> {
               finish: 'Vapor-Polished Monochrome',
               dimensions: 'Custom Archival Scale',
             },
+            createdAt: p.created_at,
           };
         });
       }
     } catch (e) {
-      console.warn('Could not fetch products from Supabase, using seeded catalog.', e);
+      console.warn('Could not fetch products from Supabase, using local catalog.', e);
     }
   }
 
-  // Fallback to seeded products
   return INITIAL_PRODUCTS;
+}
+
+export async function getFeaturedProducts(): Promise<Product[]> {
+  const all = await getAllProducts();
+  return all.filter((p) => p.shelfSlug === 'signature-premium' || p.badge === 'Signature').slice(0, 6);
+}
+
+export interface FilterOptions {
+  shelfSlug?: string;
+  categorySlug?: string;
+  sortBy?: 'newest' | 'price-asc' | 'price-desc';
+  minPrice?: number;
+  maxPrice?: number;
+}
+
+export async function getFilteredProducts(options: FilterOptions): Promise<Product[]> {
+  let list = await getAllProducts();
+
+  if (options.shelfSlug) {
+    const targetSlug = options.shelfSlug.toLowerCase();
+    list = list.filter((p) => p.shelfSlug.toLowerCase() === targetSlug);
+  }
+
+  if (options.categorySlug) {
+    const targetCat = options.categorySlug.toLowerCase();
+    list = list.filter((p) => p.categorySlug.toLowerCase() === targetCat);
+  }
+
+  if (options.minPrice !== undefined) {
+    list = list.filter((p) => p.price >= options.minPrice!);
+  }
+
+  if (options.maxPrice !== undefined) {
+    list = list.filter((p) => p.price <= options.maxPrice!);
+  }
+
+  if (options.sortBy === 'price-asc') {
+    list.sort((a, b) => a.price - b.price);
+  } else if (options.sortBy === 'price-desc') {
+    list.sort((a, b) => b.price - a.price);
+  } else {
+    // Newest first by default
+    list.sort((a, b) => {
+      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return dateB - dateA;
+    });
+  }
+
+  return list;
 }

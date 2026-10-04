@@ -9,6 +9,7 @@ export interface ShelfCategory {
 export const SHELVES_DATA = [
   {
     shelf: 'Signature / Premium',
+    slug: 'signature-premium',
     categories: [
       { name: 'Designer Lamps', slug: 'premium-designer-lamps' },
       { name: 'Luxury Handbags', slug: 'luxury-handbags' },
@@ -20,6 +21,7 @@ export const SHELVES_DATA = [
   },
   {
     shelf: 'Lighting',
+    slug: 'lighting',
     categories: [
       { name: 'Table Lamps', slug: 'table-lamps' },
       { name: 'Pendant Lamps', slug: 'pendant-lamps' },
@@ -31,6 +33,7 @@ export const SHELVES_DATA = [
   },
   {
     shelf: 'Home Decor',
+    slug: 'home-decor',
     categories: [
       { name: 'Vases', slug: 'vases' },
       { name: 'Showpieces', slug: 'showpieces' },
@@ -44,6 +47,7 @@ export const SHELVES_DATA = [
   },
   {
     shelf: 'Planters & Garden',
+    slug: 'planters-garden',
     categories: [
       { name: 'Geometric Planters', slug: 'geometric-planters' },
       { name: 'Self-watering Pots', slug: 'self-watering-pots' },
@@ -53,6 +57,7 @@ export const SHELVES_DATA = [
   },
   {
     shelf: 'Kitchen & Utility',
+    slug: 'kitchen-utility',
     categories: [
       { name: 'Napkin Holders', slug: 'napkin-holders' },
       { name: 'Organisers', slug: 'kitchen-organisers' },
@@ -63,6 +68,7 @@ export const SHELVES_DATA = [
   },
   {
     shelf: 'Desk & Office',
+    slug: 'desk-office',
     categories: [
       { name: 'Pen Stands', slug: 'pen-stands' },
       { name: 'Desk Organisers', slug: 'desk-organisers' },
@@ -73,6 +79,7 @@ export const SHELVES_DATA = [
   },
   {
     shelf: 'Tech Accessories',
+    slug: 'tech-accessories',
     categories: [
       { name: 'Phone Holders', slug: 'tech-phone-holders' },
       { name: 'Earbud Cases', slug: 'earbud-cases' },
@@ -82,6 +89,7 @@ export const SHELVES_DATA = [
   },
   {
     shelf: 'Automotive',
+    slug: 'automotive',
     categories: [
       { name: 'Dashboard Figures', slug: 'dashboard-figures' },
       { name: 'Car Mounts', slug: 'car-mounts' },
@@ -92,6 +100,7 @@ export const SHELVES_DATA = [
   },
   {
     shelf: 'Beauty & Personal',
+    slug: 'beauty-personal',
     categories: [
       { name: 'Press-on Nails', slug: 'press-on-nails' },
       { name: 'Nail Charms', slug: 'nail-charms' },
@@ -102,6 +111,7 @@ export const SHELVES_DATA = [
   },
   {
     shelf: 'Jewellery',
+    slug: 'jewellery',
     categories: [
       { name: 'Earrings', slug: 'earrings' },
       { name: 'Pendants', slug: 'pendants' },
@@ -113,6 +123,7 @@ export const SHELVES_DATA = [
   },
   {
     shelf: 'Bags',
+    slug: 'bags',
     categories: [
       { name: 'Handbags', slug: 'bags-handbags' },
       { name: 'Clutches', slug: 'clutches' },
@@ -122,6 +133,7 @@ export const SHELVES_DATA = [
   },
   {
     shelf: 'Devotional',
+    slug: 'devotional',
     categories: [
       { name: 'Custom Temple', slug: 'devotional-custom-temple' },
       { name: 'Idols', slug: 'idols' },
@@ -133,6 +145,7 @@ export const SHELVES_DATA = [
   },
   {
     shelf: 'Gifts & Personalised',
+    slug: 'gifts-personalised',
     categories: [
       { name: 'Custom Mementos', slug: 'custom-mementos' },
       { name: 'Trophies & Awards', slug: 'trophies-awards' },
@@ -144,6 +157,7 @@ export const SHELVES_DATA = [
   },
   {
     shelf: 'Kids & Toys',
+    slug: 'kids-toys',
     categories: [
       { name: 'Flexi Toys', slug: 'flexi-toys' },
       { name: 'Fidget Toys', slug: 'fidget-toys' },
@@ -155,6 +169,7 @@ export const SHELVES_DATA = [
   },
   {
     shelf: 'Miniatures & Collectibles',
+    slug: 'miniatures-collectibles',
     categories: [
       { name: 'Tabletop Miniatures', slug: 'tabletop-miniatures' },
       { name: 'Figurines', slug: 'figurines' },
@@ -165,6 +180,7 @@ export const SHELVES_DATA = [
   },
   {
     shelf: 'Storage',
+    slug: 'storage',
     categories: [
       { name: 'Storage Boxes', slug: 'storage-boxes' },
       { name: 'Drawer Organisers', slug: 'drawer-organisers' },
@@ -174,6 +190,7 @@ export const SHELVES_DATA = [
   },
   {
     shelf: 'Festive & Seasonal',
+    slug: 'festive-seasonal',
     categories: [
       { name: 'Diwali Decor', slug: 'diwali-decor' },
       { name: 'Rakhi', slug: 'rakhi' },
@@ -184,6 +201,7 @@ export const SHELVES_DATA = [
   },
   {
     shelf: 'Custom Studio',
+    slug: 'custom-studio',
     categories: [
       { name: 'Upload Your Design', slug: 'upload-your-design' },
       { name: 'Photo to Lithophane', slug: 'custom-photo-to-lithophane' },
@@ -201,7 +219,9 @@ export interface Product {
   price: number; // in INR
   originalPrice?: number; // in INR
   category: string;
+  categorySlug: string;
   shelf: string;
+  shelfSlug: string;
   rating: number;
   reviewsCount: number;
   badge?: string;
@@ -214,10 +234,12 @@ export interface Product {
     finish: string;
     dimensions: string;
   };
+  createdAt?: string;
 }
 
-// 6 Placeholder products in the "Signature / Premium" shelf priced in INR
+// Initial products across multiple shelves with INR pricing
 export const INITIAL_PRODUCTS: Product[] = [
+  // Signature / Premium Shelf (6 products)
   {
     id: 'prem-01',
     name: 'Lumina Voronoi Signature Designer Lamp',
@@ -226,7 +248,9 @@ export const INITIAL_PRODUCTS: Product[] = [
     price: 18500,
     originalPrice: 22000,
     category: 'Designer Lamps',
+    categorySlug: 'premium-designer-lamps',
     shelf: 'Signature / Premium',
+    shelfSlug: 'signature-premium',
     rating: 5.0,
     reviewsCount: 48,
     badge: 'Signature',
@@ -239,6 +263,7 @@ export const INITIAL_PRODUCTS: Product[] = [
       finish: 'Matte Chalk / Obsidian Black',
       dimensions: '180mm x 180mm x 280mm',
     },
+    createdAt: '2026-10-01T10:00:00Z',
   },
   {
     id: 'prem-02',
@@ -248,7 +273,9 @@ export const INITIAL_PRODUCTS: Product[] = [
     price: 24900,
     originalPrice: 29500,
     category: 'Luxury Handbags',
+    categorySlug: 'luxury-handbags',
     shelf: 'Signature / Premium',
+    shelfSlug: 'signature-premium',
     rating: 4.9,
     reviewsCount: 31,
     badge: 'Limited Run',
@@ -261,6 +288,7 @@ export const INITIAL_PRODUCTS: Product[] = [
       finish: 'Vapor-Polished Obsidian',
       dimensions: '220mm x 140mm x 75mm',
     },
+    createdAt: '2026-10-02T10:00:00Z',
   },
   {
     id: 'prem-03',
@@ -270,7 +298,9 @@ export const INITIAL_PRODUCTS: Product[] = [
     price: 58000,
     originalPrice: 68000,
     category: 'Custom Temple',
+    categorySlug: 'premium-custom-temple',
     shelf: 'Signature / Premium',
+    shelfSlug: 'signature-premium',
     rating: 5.0,
     reviewsCount: 19,
     badge: 'Bespoke Order',
@@ -283,6 +313,7 @@ export const INITIAL_PRODUCTS: Product[] = [
       finish: 'Hand-Finished Marble Chalk & Warm Gold',
       dimensions: '450mm x 350mm x 600mm',
     },
+    createdAt: '2026-10-03T10:00:00Z',
   },
   {
     id: 'prem-04',
@@ -292,7 +323,9 @@ export const INITIAL_PRODUCTS: Product[] = [
     price: 14500,
     originalPrice: 17500,
     category: '3D Car Frame Wall Art',
+    categorySlug: '3d-car-frame-wall-art',
     shelf: 'Signature / Premium',
+    shelfSlug: 'signature-premium',
     rating: 4.9,
     reviewsCount: 64,
     badge: 'Collector',
@@ -305,6 +338,7 @@ export const INITIAL_PRODUCTS: Product[] = [
       finish: 'Matte Chalk on Deep Onyx Frame',
       dimensions: '500mm x 400mm x 85mm Depth',
     },
+    createdAt: '2026-09-28T10:00:00Z',
   },
   {
     id: 'prem-05',
@@ -314,7 +348,9 @@ export const INITIAL_PRODUCTS: Product[] = [
     price: 19900,
     originalPrice: 24000,
     category: 'Wall Sculptures',
+    categorySlug: 'premium-wall-sculptures',
     shelf: 'Signature / Premium',
+    shelfSlug: 'signature-premium',
     rating: 4.8,
     reviewsCount: 27,
     badge: 'Architectural',
@@ -327,6 +363,7 @@ export const INITIAL_PRODUCTS: Product[] = [
       finish: 'Vapor-Smoothed Chalk White',
       dimensions: '600mm x 600mm x 70mm',
     },
+    createdAt: '2026-09-25T10:00:00Z',
   },
   {
     id: 'prem-06',
@@ -336,7 +373,9 @@ export const INITIAL_PRODUCTS: Product[] = [
     price: 8900,
     originalPrice: 10500,
     category: 'Lithophane Photo Art',
+    categorySlug: 'lithophane-photo-art',
     shelf: 'Signature / Premium',
+    shelfSlug: 'signature-premium',
     rating: 5.0,
     reviewsCount: 82,
     badge: 'Personalized',
@@ -349,5 +388,164 @@ export const INITIAL_PRODUCTS: Product[] = [
       finish: 'Translucent Optical Relief & Walnut Base',
       dimensions: '200mm Diameter Semi-Cylinder',
     },
+    createdAt: '2026-09-30T10:00:00Z',
+  },
+
+  // Lighting Shelf (2 products)
+  {
+    id: 'light-01',
+    name: 'Apollo Precision Lunar Orb Lamp',
+    tagline: 'Topographically mapped moon lamp with hidden dual-spectrum LEDs',
+    description: 'High-resolution lunar sphere with scientifically verified topography derived from NASA lunar reconnaissance orbital data. Fitted with magnetic touch-docking base.',
+    price: 4500,
+    originalPrice: 5800,
+    category: 'Moon Lamps',
+    categorySlug: 'moon-lamps',
+    shelf: 'Lighting',
+    shelfSlug: 'lighting',
+    rating: 4.9,
+    reviewsCount: 114,
+    badge: 'Best Seller',
+    image: 'https://images.unsplash.com/photo-1532767153582-b1a0e5145009?w=1000&auto=format&fit=crop&q=85',
+    geometryType: 'sphere',
+    inStock: true,
+    specs: {
+      material: 'Biodegradable PLA Silk Polymer',
+      resolution: '50 Microns',
+      finish: 'Matte Lunar Surface',
+      dimensions: '180mm Diameter Sphere',
+    },
+    createdAt: '2026-09-22T10:00:00Z',
+  },
+  {
+    id: 'light-02',
+    name: 'Zenith Minimalist Monolith Table Lamp',
+    tagline: 'Fluted architectural table lantern with warm diffusion',
+    description: 'Cast with architectural fluting and a hollow spiral light tunnel. Emits a gentle 360-degree ambient halo without harsh glare.',
+    price: 6800,
+    originalPrice: 7900,
+    category: 'Table Lamps',
+    categorySlug: 'table-lamps',
+    shelf: 'Lighting',
+    shelfSlug: 'lighting',
+    rating: 4.8,
+    reviewsCount: 56,
+    badge: 'New Arrival',
+    image: 'https://images.unsplash.com/photo-1540932239986-30128078f3c5?w=1000&auto=format&fit=crop&q=85',
+    geometryType: 'prism',
+    inStock: true,
+    specs: {
+      material: 'Ceramic Composite Resin',
+      resolution: '30 Microns',
+      finish: 'Matte White Chalk',
+      dimensions: '120mm x 120mm x 320mm',
+    },
+    createdAt: '2026-09-29T10:00:00Z',
+  },
+
+  // Home Decor Shelf (2 products)
+  {
+    id: 'home-01',
+    name: 'Voronoi Spiral Watertight Amphora Vase',
+    tagline: 'Parametric architectural vessel for botanical stems',
+    description: 'Generative spiral form engineered with thick internal watertight barrier walls. Beautiful as an independent sculpture or botanical vessel.',
+    price: 3800,
+    originalPrice: 4600,
+    category: 'Vases',
+    categorySlug: 'vases',
+    shelf: 'Home Decor',
+    shelfSlug: 'home-decor',
+    rating: 4.9,
+    reviewsCount: 92,
+    badge: 'Editor Choice',
+    image: 'https://images.unsplash.com/photo-1581783342308-f792dbdd27c5?w=1000&auto=format&fit=crop&q=85',
+    geometryType: 'torus',
+    inStock: true,
+    specs: {
+      material: 'Hydrophobic Ceramic Infused Polymer',
+      resolution: '40 Microns',
+      finish: 'Satin Obsidian Black',
+      dimensions: '140mm x 140mm x 260mm',
+    },
+    createdAt: '2026-09-20T10:00:00Z',
+  },
+  {
+    id: 'home-02',
+    name: 'Brutalist Silent Radial Desk Clock',
+    tagline: 'Deep-set shadowed numerals with silent sweep mechanism',
+    description: 'Minimalist radial timepiece featuring faceted hour wedges and high-torque silent quartz movement. No ticking, pure serenity.',
+    price: 5200,
+    originalPrice: 6200,
+    category: 'Clocks',
+    categorySlug: 'clocks',
+    shelf: 'Home Decor',
+    shelfSlug: 'home-decor',
+    rating: 5.0,
+    reviewsCount: 41,
+    badge: 'Minimalist',
+    image: 'https://images.unsplash.com/photo-1563861826100-9cb868fdbe1c?w=1000&auto=format&fit=crop&q=85',
+    geometryType: 'cyber-cube',
+    inStock: true,
+    specs: {
+      material: 'Stone Composite Sintered Resin',
+      resolution: '35 Microns',
+      finish: 'Raw Chalk Grey',
+      dimensions: '160mm x 160mm x 45mm',
+    },
+    createdAt: '2026-09-27T10:00:00Z',
+  },
+
+  // Desk & Office Shelf (1 product)
+  {
+    id: 'desk-01',
+    name: 'Aero-Arch Dual-Material Headphone Pedestal',
+    tagline: 'Sculptural headphone arch with weighted steel base',
+    description: 'Curved to match ergonomic headband contours preventing foam compression. Heavy concealed base provides stable single-handed docking.',
+    price: 4900,
+    originalPrice: 5900,
+    category: 'Headphone Stands',
+    categorySlug: 'headphone-stands',
+    shelf: 'Desk & Office',
+    shelfSlug: 'desk-office',
+    rating: 4.9,
+    reviewsCount: 77,
+    badge: 'Desk Setup',
+    image: 'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=1000&auto=format&fit=crop&q=85',
+    geometryType: 'headset',
+    inStock: true,
+    specs: {
+      material: 'Carbon Lattice & Steel Counterweight',
+      resolution: '30 Microns',
+      finish: 'Matte Gunmetal Obsidian',
+      dimensions: '130mm x 130mm x 280mm',
+    },
+    createdAt: '2026-09-26T10:00:00Z',
+  },
+
+  // Devotional Shelf (1 product)
+  {
+    id: 'devo-01',
+    name: 'Serene Parametric Ganesha Divine Idol',
+    tagline: 'Modern architectural sacred form crafted in pure chalk marble resin',
+    description: 'Graceful flowing facets evoking timeless divinity with contemporary minimalist restraint. Coated in non-porous ceremonial protective sealant.',
+    price: 7500,
+    originalPrice: 9000,
+    category: 'Idols',
+    categorySlug: 'idols',
+    shelf: 'Devotional',
+    shelfSlug: 'devotional',
+    rating: 5.0,
+    reviewsCount: 153,
+    badge: 'Divine',
+    image: 'https://images.unsplash.com/photo-1567591414240-e14b2d5f3089?w=1000&auto=format&fit=crop&q=85',
+    geometryType: 'prism',
+    inStock: true,
+    specs: {
+      material: 'Marble-Infused Micro-SLA Resin',
+      resolution: '20 Microns Ultra-Fine',
+      finish: 'Pristine Chalk White',
+      dimensions: '110mm x 100mm x 165mm',
+    },
+    createdAt: '2026-09-18T10:00:00Z',
   },
 ];
