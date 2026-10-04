@@ -5,10 +5,11 @@ export interface Product {
   description: string;
   price: number;
   originalPrice?: number;
-  category: 'Wearables' | 'Desk Art' | 'Collectibles' | 'Cyber Gear';
+  category: string;
+  shelf?: string;
   rating: number;
   reviewsCount: number;
-  badge?: 'Best Seller' | 'Limited Edition' | 'New Arrival' | '3D Interactive';
+  badge?: string;
   image: string;
   geometryType: 'torus' | 'sphere' | 'cyber-cube' | 'prism' | 'headset';
   inStock: boolean;
