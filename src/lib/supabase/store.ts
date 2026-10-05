@@ -152,7 +152,56 @@ export async function getAllProducts(): Promise<Product[]> {
     }
   }
 
-  return INITIAL_PRODUCTS;
+  const result = [...INITIAL_PRODUCTS];
+  if (typeof window !== 'undefined') {
+    try {
+      const localAdminProds = JSON.parse(localStorage.getItem('levelx3d_admin_products') || '[]');
+      localAdminProds.forEach((ap: any) => {
+        if (ap.status === 'archived') {
+          const idx = result.findIndex((p) => p.id === ap.id || p.slug === ap.slug);
+          if (idx >= 0) result.splice(idx, 1);
+          return;
+        }
+        const converted: Product = {
+          id: ap.id,
+          slug: ap.slug,
+          name: ap.name,
+          tagline: ap.description?.slice(0, 75) || 'Archival 3D printed artifact',
+          description: ap.description,
+          price: ap.price_inr,
+          originalPrice: ap.compare_at_price_inr,
+          category: ap.category,
+          categorySlug: ap.categorySlug,
+          shelf: ap.shelf,
+          shelfSlug: ap.shelfSlug,
+          rating: 5.0,
+          reviewsCount: 24,
+          badge: ap.is_premium ? 'Signature' : undefined,
+          image: ap.image_url,
+          images: ap.images && ap.images.length > 0 ? ap.images : [ap.image_url],
+          isCustomizable: ap.is_customizable,
+          options: ap.options || [],
+          geometryType: 'torus',
+          inStock: ap.stock > 0,
+          stock: ap.stock,
+          specs: {
+            material: 'Selective Laser Sintered (SLS) Nylon PA12',
+            resolution: '25 Microns',
+            finish: 'Vapor-Polished Monochrome',
+            dimensions: 'Custom Archival Scale',
+          },
+          createdAt: ap.created_at,
+        };
+        const idx = result.findIndex((p) => p.id === ap.id || p.slug === ap.slug);
+        if (idx >= 0) {
+          result[idx] = converted;
+        } else {
+          result.unshift(converted);
+        }
+      });
+    } catch (e) {}
+  }
+  return result;
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | null> {
