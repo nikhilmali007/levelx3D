@@ -47,6 +47,12 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
       siteName: 'Level X 3D',
       images: [
         {
+          url: `/product/${product.slug}/opengraph-image`,
+          width: 1200,
+          height: 630,
+          alt: `${product.name} — Level X 3D Specimen`,
+        },
+        {
           url: product.image,
           width: 1200,
           height: 630,
@@ -59,7 +65,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
       card: 'summary_large_image',
       title,
       description,
-      images: [product.image],
+      images: [`/product/${product.slug}/opengraph-image`],
     },
   };
 }

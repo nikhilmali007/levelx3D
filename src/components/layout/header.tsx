@@ -70,12 +70,12 @@ export function Header({ theme = 'light', onSearchClick }: HeaderProps) {
         </nav>
 
         {/* Quiet Actions: Search, Account & Cart */}
-        <div className="flex items-center gap-4 sm:gap-6">
+        <div className="flex items-center gap-1 sm:gap-2">
           {/* Search Trigger */}
           <button
             onClick={onSearchClick}
             aria-label="Search objects"
-            className={`p-1.5 transition-colors duration-200 ${subtextColor} hover:${textColor}`}
+            className={`min-w-[44px] min-h-[44px] flex items-center justify-center p-2 rounded-xl transition-colors duration-200 ${subtextColor} hover:${textColor}`}
           >
             <Search className="w-4 h-4 stroke-[1.4]" />
           </button>
@@ -84,19 +84,19 @@ export function Header({ theme = 'light', onSearchClick }: HeaderProps) {
           <Link
             href={user ? '/account' : '/login'}
             aria-label={user ? 'Customer Account' : 'Sign In'}
-            className={`p-1.5 transition-colors duration-200 relative ${subtextColor} hover:${textColor}`}
+            className={`min-w-[44px] min-h-[44px] flex items-center justify-center p-2 rounded-xl transition-colors duration-200 relative ${subtextColor} hover:${textColor}`}
           >
             <User className="w-4 h-4 stroke-[1.4]" />
             {user && (
-              <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-emerald-500 ring-2 ring-canvas" />
+              <span className="absolute top-2.5 right-2.5 w-1.5 h-1.5 rounded-full bg-emerald-500 ring-2 ring-canvas" />
             )}
           </Link>
 
           {/* Cart Trigger */}
           <button
             onClick={() => setIsDrawerOpen(true)}
-            aria-label="Open Cart"
-            className={`relative p-1.5 transition-colors duration-200 flex items-center gap-1.5 ${subtextColor} hover:${textColor}`}
+            aria-label={`Open Cart (${totalItems} items)`}
+            className={`min-w-[44px] min-h-[44px] flex items-center justify-center p-2 rounded-xl transition-colors duration-200 relative ${subtextColor} hover:${textColor}`}
           >
             <ShoppingBag className="w-4 h-4 stroke-[1.4]" />
             {isLoaded && totalItems > 0 && (
@@ -116,7 +116,7 @@ export function Header({ theme = 'light', onSearchClick }: HeaderProps) {
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-label="Toggle Navigation"
-            className={`md:hidden p-1.5 transition-colors ${subtextColor} hover:${textColor}`}
+            className={`md:hidden min-w-[44px] min-h-[44px] flex items-center justify-center p-2 rounded-xl transition-colors ${subtextColor} hover:${textColor}`}
           >
             {mobileOpen ? (
               <X className="w-5 h-5 stroke-[1.4]" />

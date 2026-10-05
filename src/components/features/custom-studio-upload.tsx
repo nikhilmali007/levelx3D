@@ -41,6 +41,8 @@ export function CustomStudioUpload() {
       <input
         ref={fileInputRef}
         type="file"
+        id="cad-file-upload"
+        aria-label="Upload 3D CAD or mesh file (.stl, .obj, .step, .stp, .3mf)"
         accept=".stl,.obj,.step,.stp,.3mf"
         onChange={handleFileChange}
         className="hidden"

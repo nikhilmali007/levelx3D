@@ -24,9 +24,9 @@ export const QuietButton = React.forwardRef<HTMLButtonElement, QuietButtonProps>
     const isLight = variant === 'light';
 
     const sizeClasses = {
-      sm: 'text-xs py-1.5',
-      default: 'text-sm py-2',
-      lg: 'text-base py-3',
+      sm: 'text-xs py-2 px-3 min-h-[44px] inline-flex items-center',
+      default: 'text-sm py-2.5 px-4 min-h-[44px] inline-flex items-center',
+      lg: 'text-base py-3 px-6 min-h-[48px] inline-flex items-center',
     }[size];
 
     return (

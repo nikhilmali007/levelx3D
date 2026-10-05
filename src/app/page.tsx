@@ -202,12 +202,12 @@ export default function HomePage() {
         </ScrollReveal>
 
         {/* Shelves Selector Pills */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-6 mb-10 scrollbar-none">
+        <div className="flex items-center gap-2.5 overflow-x-auto pb-6 mb-10 scrollbar-none">
           {shelves.map((s) => (
             <button
               key={s.shelf}
               onClick={() => setSelectedShelf(s.shelf)}
-              className={`px-4 py-2 rounded-xl text-xs font-heading font-light tracking-apple-wide whitespace-nowrap transition-all border ${
+              className={`px-4 py-2.5 min-h-[44px] inline-flex items-center rounded-xl text-xs font-heading font-light tracking-apple-wide whitespace-nowrap transition-all border ${
                 selectedShelf === s.shelf
                   ? 'bg-onyx text-chalk border-onyx'
                   : 'bg-canvas text-slate border-hairline-light hover:text-ink hover:border-slate/40'
@@ -232,7 +232,7 @@ export default function HomePage() {
                     {current.categories.length} Specialized Fabrication Categories
                   </span>
                 </div>
-                <Link href="#featured">
+                <Link href="#featured" className="min-h-[44px] inline-flex items-center">
                   <QuietButton variant="light" size="sm">
                     View Featured Products &rarr;
                   </QuietButton>
@@ -241,9 +241,10 @@ export default function HomePage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {current.categories.map((cat) => (
-                  <div
+                  <Link
                     key={cat.slug}
-                    className="p-5 rounded-2xl border border-hairline-light bg-canvas hover:border-slate/40 transition-all duration-300 group flex items-center justify-between hover:-translate-y-0.5"
+                    href={`/category/${cat.slug}`}
+                    className="p-5 min-h-[44px] rounded-2xl border border-hairline-light bg-canvas hover:border-slate/40 transition-all duration-300 group flex items-center justify-between hover:-translate-y-0.5"
                   >
                     <div>
                       <h4 className="font-heading text-xs font-light tracking-apple-wide text-ink group-hover:text-black">
@@ -254,7 +255,7 @@ export default function HomePage() {
                       </span>
                     </div>
                     <ChevronRight className="w-3.5 h-3.5 text-slate group-hover:text-ink group-hover:translate-x-1 transition-all stroke-[1.5]" />
-                  </div>
+                  </Link>
                 ))}
               </div>
             </div>

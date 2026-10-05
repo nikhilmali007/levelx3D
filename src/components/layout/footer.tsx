@@ -49,13 +49,17 @@ export function Footer() {
             </p>
 
             <form onSubmit={handleSubmit} className="flex max-w-md items-end gap-4 border-b border-hairline-dark pb-2">
+              <label htmlFor="newsletter-email" className="sr-only">
+                Email address for archival dispatch
+              </label>
               <input
+                id="newsletter-email"
                 type="email"
                 required
                 placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="flex-1 bg-transparent text-xs text-chalk placeholder:text-slate/60 outline-none py-1 font-sans"
+                className="flex-1 bg-transparent text-xs text-chalk placeholder:text-slate/60 outline-none py-2 font-sans focus-visible:ring-1 focus-visible:ring-chalk/50 rounded"
               />
               <QuietButton variant="dark" size="sm" type="submit">
                 {submitted ? 'Subscribed' : 'Join'}
@@ -67,27 +71,27 @@ export function Footer() {
         {/* Middle: Link Columns */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-10 py-16 border-b border-hairline-dark">
           <div>
-            <h4 className="font-heading text-xs tracking-apple-widest font-light text-slate uppercase mb-5">
+            <h4 className="font-heading text-xs tracking-apple-widest font-light text-slate uppercase mb-3">
               Collections
             </h4>
-            <ul className="space-y-3 text-xs font-sans text-chalk/80">
+            <ul className="space-y-1 text-xs font-sans text-chalk/80">
               <li>
-                <Link href="#shop" className="hover:text-chalk transition-colors">
+                <Link href="/shop" className="hover:text-chalk transition-colors min-h-[44px] flex items-center py-1">
                   Kinetic Desk Art
                 </Link>
               </li>
               <li>
-                <Link href="#shop" className="hover:text-chalk transition-colors">
+                <Link href="/shop" className="hover:text-chalk transition-colors min-h-[44px] flex items-center py-1">
                   Sintered Nylon PA12
                 </Link>
               </li>
               <li>
-                <Link href="#shop" className="hover:text-chalk transition-colors">
+                <Link href="/shop" className="hover:text-chalk transition-colors min-h-[44px] flex items-center py-1">
                   Biometric Wearables
                 </Link>
               </li>
               <li>
-                <Link href="#premium" className="hover:text-chalk transition-colors">
+                <Link href="/shop/signature-premium" className="hover:text-chalk transition-colors min-h-[44px] flex items-center py-1">
                   Numbered Archives
                 </Link>
               </li>
@@ -95,27 +99,27 @@ export function Footer() {
           </div>
 
           <div>
-            <h4 className="font-heading text-xs tracking-apple-widest font-light text-slate uppercase mb-5">
+            <h4 className="font-heading text-xs tracking-apple-widest font-light text-slate uppercase mb-3">
               Custom Studio
             </h4>
-            <ul className="space-y-3 text-xs font-sans text-chalk/80">
+            <ul className="space-y-1 text-xs font-sans text-chalk/80">
               <li>
-                <Link href="#studio" className="hover:text-chalk transition-colors">
+                <Link href="/#studio" className="hover:text-chalk transition-colors min-h-[44px] flex items-center py-1">
                   CAD File Ingestion
                 </Link>
               </li>
               <li>
-                <Link href="#studio" className="hover:text-chalk transition-colors">
+                <Link href="/#studio" className="hover:text-chalk transition-colors min-h-[44px] flex items-center py-1">
                   Tolerance Standards
                 </Link>
               </li>
               <li>
-                <Link href="#studio" className="hover:text-chalk transition-colors">
+                <Link href="/#studio" className="hover:text-chalk transition-colors min-h-[44px] flex items-center py-1">
                   Vapor Smoothing
                 </Link>
               </li>
               <li>
-                <Link href="#studio" className="hover:text-chalk transition-colors">
+                <Link href="/#studio" className="hover:text-chalk transition-colors min-h-[44px] flex items-center py-1">
                   Bespoke Sizing
                 </Link>
               </li>
@@ -123,27 +127,27 @@ export function Footer() {
           </div>
 
           <div>
-            <h4 className="font-heading text-xs tracking-apple-widest font-light text-slate uppercase mb-5">
+            <h4 className="font-heading text-xs tracking-apple-widest font-light text-slate uppercase mb-3">
               Philosophy
             </h4>
-            <ul className="space-y-3 text-xs font-sans text-chalk/80">
+            <ul className="space-y-1 text-xs font-sans text-chalk/80">
               <li>
-                <Link href="#about" className="hover:text-chalk transition-colors">
+                <Link href="/#about" className="hover:text-chalk transition-colors min-h-[44px] flex items-center py-1">
                   Materials Ethics
                 </Link>
               </li>
               <li>
-                <Link href="#about" className="hover:text-chalk transition-colors">
+                <Link href="/#about" className="hover:text-chalk transition-colors min-h-[44px] flex items-center py-1">
                   Apple-Grade Craft
                 </Link>
               </li>
               <li>
-                <Link href="#about" className="hover:text-chalk transition-colors">
+                <Link href="/#about" className="hover:text-chalk transition-colors min-h-[44px] flex items-center py-1">
                   Monochrome Code
                 </Link>
               </li>
               <li>
-                <Link href="#about" className="hover:text-chalk transition-colors">
+                <Link href="/#about" className="hover:text-chalk transition-colors min-h-[44px] flex items-center py-1">
                   Recyclable Polymers
                 </Link>
               </li>
@@ -151,22 +155,22 @@ export function Footer() {
           </div>
 
           <div>
-            <h4 className="font-heading text-xs tracking-apple-widest font-light text-slate uppercase mb-5">
+            <h4 className="font-heading text-xs tracking-apple-widest font-light text-slate uppercase mb-3">
               Legal & Direct
             </h4>
-            <ul className="space-y-3 text-xs font-sans text-chalk/80">
+            <ul className="space-y-1 text-xs font-sans text-chalk/80">
               <li>
-                <Link href="#terms" className="hover:text-chalk transition-colors">
+                <Link href="/#terms" className="hover:text-chalk transition-colors min-h-[44px] flex items-center py-1">
                   Terms of Fabrication
                 </Link>
               </li>
               <li>
-                <Link href="#privacy" className="hover:text-chalk transition-colors">
+                <Link href="/#privacy" className="hover:text-chalk transition-colors min-h-[44px] flex items-center py-1">
                   Privacy Policy
                 </Link>
               </li>
               <li>
-                <Link href="#shipping" className="hover:text-chalk transition-colors">
+                <Link href="/#shipping" className="hover:text-chalk transition-colors min-h-[44px] flex items-center py-1">
                   Worldwide Shipping
                 </Link>
               </li>
@@ -175,7 +179,8 @@ export function Footer() {
                   href="https://github.com/nikhilmali007/levelx3D"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:text-chalk transition-colors"
+                  aria-label="Level X 3D GitHub Source Code Repository"
+                  className="hover:text-chalk transition-colors min-h-[44px] flex items-center py-1"
                 >
                   GitHub Source
                 </a>
