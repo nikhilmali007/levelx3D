@@ -12,7 +12,7 @@ interface HeaderProps {
 }
 
 export function Header({ theme = 'light', onSearchClick }: HeaderProps) {
-  const { totalItems, setIsDrawerOpen } = useCart();
+  const { totalItems, setIsDrawerOpen, isLoaded } = useCart();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const isLight = theme === 'light';
@@ -85,7 +85,7 @@ export function Header({ theme = 'light', onSearchClick }: HeaderProps) {
             className={`relative p-1.5 transition-colors duration-200 flex items-center gap-1.5 ${subtextColor} hover:${textColor}`}
           >
             <ShoppingBag className="w-4 h-4 stroke-[1.4]" />
-            {totalItems > 0 && (
+            {isLoaded && totalItems > 0 && (
               <span
                 className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full border ${
                   isLight
