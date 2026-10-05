@@ -280,20 +280,14 @@ export function CartDrawer() {
                 </div>
 
                 <div className="flex flex-col gap-2 pt-1">
-                  <button
-                    onClick={handleCheckout}
-                    disabled={isCheckingOut}
-                    className="w-full py-3.5 bg-onyx hover:bg-ink text-chalk text-xs font-heading tracking-apple-wide transition-all uppercase rounded-xl flex items-center justify-center gap-2 shadow-sm"
+                  <Link
+                    href="/checkout"
+                    onClick={() => setIsDrawerOpen(false)}
+                    className="w-full py-3.5 bg-onyx hover:bg-ink text-chalk text-xs font-heading tracking-apple-wide transition-all uppercase rounded-xl flex items-center justify-center gap-2 shadow-sm text-center"
                   >
-                    {isCheckingOut ? (
-                      'Preparing Dispatch...'
-                    ) : (
-                      <>
-                        <span>Proceed to Checkout</span>
-                        <ArrowRight className="w-3.5 h-3.5 stroke-[1.4]" />
-                      </>
-                    )}
-                  </button>
+                    <span>Proceed to Checkout</span>
+                    <ArrowRight className="w-3.5 h-3.5 stroke-[1.4]" />
+                  </Link>
 
                   <Link
                     href="/cart"

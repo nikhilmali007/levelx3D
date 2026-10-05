@@ -317,20 +317,13 @@ export function CartPageView() {
               </div>
 
               {/* Proceed to Checkout Action */}
-              <button
-                onClick={handleCheckout}
-                disabled={isCheckingOut || items.length === 0}
-                className="w-full py-4 bg-onyx hover:bg-ink text-chalk text-xs sm:text-sm font-heading font-light tracking-apple-wide uppercase rounded-2xl flex items-center justify-center gap-2 shadow-md transition-all disabled:opacity-50"
+              <Link
+                href="/checkout"
+                className="w-full py-4 bg-onyx hover:bg-ink text-chalk text-xs sm:text-sm font-heading font-light tracking-apple-wide uppercase rounded-2xl flex items-center justify-center gap-2 shadow-md transition-all text-center"
               >
-                {isCheckingOut ? (
-                  <span>Securing Order...</span>
-                ) : (
-                  <>
-                    <span>Proceed to Checkout &bull; {formatPrice(orderTotal)}</span>
-                    <ArrowRight className="w-4 h-4 stroke-[1.4]" />
-                  </>
-                )}
-              </button>
+                <span>Proceed to Checkout &bull; {formatPrice(orderTotal)}</span>
+                <ArrowRight className="w-4 h-4 stroke-[1.4]" />
+              </Link>
 
               {/* Provenance assurances */}
               <div className="space-y-2.5 pt-4 border-t border-hairline-light text-[11px] font-mono text-slate">
