@@ -29,6 +29,8 @@ export const metadata: Metadata = {
   },
 };
 
+import { AuthProvider } from '@/context/auth-context';
+
 export default function RootLayout({
   children,
 }: {
@@ -40,12 +42,14 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
       </head>
       <body className="min-h-screen bg-canvas text-ink antialiased selection:bg-onyx selection:text-chalk font-sans">
-        <SmoothScroll>
-          <div className="relative flex min-h-screen flex-col overflow-x-hidden">
-            <main className="flex-1">{children}</main>
-            <CartDrawer />
-          </div>
-        </SmoothScroll>
+        <AuthProvider>
+          <SmoothScroll>
+            <div className="relative flex min-h-screen flex-col overflow-x-hidden">
+              <main className="flex-1">{children}</main>
+              <CartDrawer />
+            </div>
+          </SmoothScroll>
+        </AuthProvider>
       </body>
     </html>
   );

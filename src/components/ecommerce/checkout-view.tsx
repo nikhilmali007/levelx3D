@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -21,6 +21,7 @@ import { formatPrice } from '@/lib/utils';
 import { Breadcrumbs } from '@/components/ecommerce/breadcrumbs';
 import { QuietButton } from '@/components/ui/quiet-button';
 import { CreateOrderResult } from '@/lib/supabase/orders';
+import { useAuth } from '@/context/auth-context';
 
 const FREE_SHIPPING_THRESHOLD_INR = 5000;
 
@@ -45,6 +46,7 @@ interface FormErrors {
 
 export function CheckoutView() {
   const { items, isLoaded, totalPrice, totalItems, clearCart } = useCart();
+  const { user, customer } = useAuth();
 
   // Collapsible summary state for mobile
   const [summaryExpanded, setSummaryExpanded] = useState(false);
@@ -60,6 +62,38 @@ export function CheckoutView() {
     state: 'Maharashtra',
     pincode: '',
   });
+
+  // Pre-fill form when user or customer profile is loaded
+  useState(() => {
+    if (user || customer) {
+      setFormData((prev) => ({
+        name: prev.name || customer?.name || user?.user_metadata?.name || '',
+        email: prev.email || customer?.email || user?.email || '',
+        phone: prev.phone || customer?.phone || user?.user_metadata?.phone || '',
+        street: prev.street || customer?.street || user?.user_metadata?.street || '',
+        landmark: prev.landmark || '',
+        city: prev.city || customer?.city || user?.user_metadata?.city || '',
+        state: prev.state || customer?.state || user?.user_metadata?.state || 'Maharashtra',
+        pincode: prev.pincode || customer?.pincode || user?.user_metadata?.pincode || '',
+      }));
+    }
+  });
+
+  // Also update when user or customer changes asynchronously
+  useEffect(() => {
+    if (user || customer) {
+      setFormData((prev) => ({
+        name: prev.name || customer?.name || user?.user_metadata?.name || '',
+        email: prev.email || customer?.email || user?.email || '',
+        phone: prev.phone || customer?.phone || user?.user_metadata?.phone || '',
+        street: prev.street || customer?.street || user?.user_metadata?.street || '',
+        landmark: prev.landmark || '',
+        city: prev.city || customer?.city || user?.user_metadata?.city || '',
+        state: prev.state || customer?.state || user?.user_metadata?.state || 'Maharashtra',
+        pincode: prev.pincode || customer?.pincode || user?.user_metadata?.pincode || '',
+      }));
+    }
+  }, [user, customer]);
 
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -152,6 +186,7 @@ export function CheckoutView() {
           subtotalInr: totalPrice,
           shippingInr: shippingCost,
           totalInr: orderTotal,
+          authUserId: user?.id || undefined,
         }),
       });
 
@@ -400,6 +435,36 @@ export function CheckoutView() {
               Shipping & Customer Details
             </h1>
           </div>
+
+          {/* Customer Auth Indicator */}
+          {user ? (
+            <div className="p-4 rounded-2xl bg-canvas border border-hairline-light flex items-center justify-between gap-4 text-xs font-sans">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+                <span className="text-slate truncate">
+                  Signed in as <strong className="text-ink font-medium">{user.email}</strong> &bull; Profile details applied
+                </span>
+              </div>
+              <Link
+                href="/account"
+                className="text-[11px] font-mono text-slate hover:text-ink underline shrink-0 transition-colors"
+              >
+                Manage Profile &rarr;
+              </Link>
+            </div>
+          ) : (
+            <div className="p-4 rounded-2xl bg-[#ECE9E2]/50 border border-hairline-light flex items-center justify-between gap-4 text-xs font-sans">
+              <span className="text-slate">
+                Checking out as Guest. Have a collector account?
+              </span>
+              <Link
+                href="/login?redirect=/checkout"
+                className="text-[11px] font-mono text-ink font-medium hover:underline shrink-0 transition-colors"
+              >
+                Sign in to pre-fill &rarr;
+              </Link>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} noValidate className="space-y-8">
             {/* Section A: Contact Details */}

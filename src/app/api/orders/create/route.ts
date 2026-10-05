@@ -4,7 +4,7 @@ import { createPendingOrder } from '@/lib/supabase/orders';
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { customer, items, subtotalInr, shippingInr, totalInr } = body;
+    const { customer, items, subtotalInr, shippingInr, totalInr, authUserId } = body;
 
     // Validation
     if (!customer) {
@@ -83,6 +83,7 @@ export async function POST(req: NextRequest) {
       subtotalInr: Number(subtotalInr || 0),
       shippingInr: Number(shippingInr || 0),
       totalInr: Number(totalInr || 0),
+      authUserId: authUserId || undefined,
     });
 
     return NextResponse.json(result, { status: 201 });

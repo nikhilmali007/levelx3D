@@ -4,6 +4,7 @@ const nextConfig = {
   images: {
     domains: ['images.unsplash.com', 'assets.aceternity.com'],
   },
+  transpilePackages: ['@supabase/supabase-js'],
 };
 
 export default nextConfig;

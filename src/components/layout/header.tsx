@@ -3,8 +3,9 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Search, ShoppingBag, Menu, X } from 'lucide-react';
+import { Search, ShoppingBag, Menu, X, User } from 'lucide-react';
 import { useCart } from '@/hooks/use-cart';
+import { useAuth } from '@/context/auth-context';
 
 interface HeaderProps {
   theme?: 'light' | 'dark';
@@ -13,6 +14,7 @@ interface HeaderProps {
 
 export function Header({ theme = 'light', onSearchClick }: HeaderProps) {
   const { totalItems, setIsDrawerOpen, isLoaded } = useCart();
+  const { user } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const isLight = theme === 'light';
@@ -67,8 +69,8 @@ export function Header({ theme = 'light', onSearchClick }: HeaderProps) {
           ))}
         </nav>
 
-        {/* Quiet Actions: Search & Cart */}
-        <div className="flex items-center gap-5 sm:gap-6">
+        {/* Quiet Actions: Search, Account & Cart */}
+        <div className="flex items-center gap-4 sm:gap-6">
           {/* Search Trigger */}
           <button
             onClick={onSearchClick}
@@ -77,6 +79,18 @@ export function Header({ theme = 'light', onSearchClick }: HeaderProps) {
           >
             <Search className="w-4 h-4 stroke-[1.4]" />
           </button>
+
+          {/* User Account / Profile */}
+          <Link
+            href={user ? '/account' : '/login'}
+            aria-label={user ? 'Customer Account' : 'Sign In'}
+            className={`p-1.5 transition-colors duration-200 relative ${subtextColor} hover:${textColor}`}
+          >
+            <User className="w-4 h-4 stroke-[1.4]" />
+            {user && (
+              <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-emerald-500 ring-2 ring-canvas" />
+            )}
+          </Link>
 
           {/* Cart Trigger */}
           <button
@@ -131,6 +145,17 @@ export function Header({ theme = 'light', onSearchClick }: HeaderProps) {
                 {link.label}
               </Link>
             ))}
+
+            <div className="pt-4 border-t border-hairline-light/60">
+              <Link
+                href={user ? '/account' : '/login'}
+                onClick={() => setMobileOpen(false)}
+                className={`font-heading text-sm tracking-apple-wide font-light ${subtextColor} hover:${textColor} py-1 flex items-center justify-between`}
+              >
+                <span>{user ? 'My Account & Orders' : 'Sign In / Account'}</span>
+                <User className="w-4 h-4" />
+              </Link>
+            </div>
           </nav>
         </div>
       )}
