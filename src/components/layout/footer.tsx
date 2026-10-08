@@ -176,6 +176,17 @@ export function Footer() {
               </li>
               <li>
                 <a
+                  href="https://wa.me/917208752822?text=Hi%20Level%20X%203D%2C%20I%20have%20an%20inquiry%20regarding%20your%203D%20creations."
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Direct WhatsApp Concierge"
+                  className="hover:text-chalk transition-colors min-h-[44px] flex items-center py-1 text-[#25D366]"
+                >
+                  WhatsApp: +91 72087 52822
+                </a>
+              </li>
+              <li>
+                <a
                   href="https://github.com/nikhilmali007/levelx3D"
                   target="_blank"
                   rel="noopener noreferrer"

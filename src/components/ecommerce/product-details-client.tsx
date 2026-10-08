@@ -320,7 +320,8 @@ export function ProductDetailsClient({ product }: ProductDetailsClientProps) {
           </button>
           <button
             onClick={() => {
-              window.open(`https://wa.me/919999999999?text=${encodeURIComponent(`Hi, I'd like to order ${product.name} (Price: ${formatPrice(calculatedPrice)}).`)}`, '_blank');
+              const phone = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '917208752822';
+              window.open(`https://wa.me/${phone}?text=${encodeURIComponent(`Hi Level X 3D, I would like to order ${product.name} (Price: ${formatPrice(calculatedPrice)}). Please assist me with the fabrication and order details.`)}`, '_blank');
             }}
             className="flex items-center justify-center gap-2 py-3 rounded-xl bg-[#25D366] text-white hover:bg-[#128C7E] transition-colors text-xs font-heading font-medium tracking-wide uppercase shadow-sm"
           >
