@@ -3,8 +3,10 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Search, ShoppingBag, Menu, X, User } from 'lucide-react';
+import { Search, ShoppingBag, Menu, X, User, Heart } from 'lucide-react';
 import { useCart } from '@/hooks/use-cart';
+import { useWishlist } from '@/hooks/use-wishlist';
+import { SearchModal } from '@/components/ecommerce/search-modal';
 import { useAuth } from '@/context/auth-context';
 
 interface HeaderProps {
@@ -14,8 +16,15 @@ interface HeaderProps {
 
 export function Header({ theme = 'light', onSearchClick }: HeaderProps) {
   const { totalItems, setIsDrawerOpen, isLoaded } = useCart();
+  const { totalItems: wishlistCount, isLoaded: wishlistLoaded } = useWishlist();
   const { user } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+
+  const handleSearchClick = () => {
+    if (onSearchClick) onSearchClick();
+    else setSearchOpen(true);
+  };
 
   const isLight = theme === 'light';
   const logoSrc = isLight ? '/logo-light.svg' : '/logo-dark.svg';
@@ -73,7 +82,7 @@ export function Header({ theme = 'light', onSearchClick }: HeaderProps) {
         <div className="flex items-center gap-1 sm:gap-2">
           {/* Search Trigger */}
           <button
-            onClick={onSearchClick}
+            onClick={handleSearchClick}
             aria-label="Search objects"
             className={`min-w-[44px] min-h-[44px] flex items-center justify-center p-2 rounded-xl transition-colors duration-200 ${subtextColor} hover:${textColor}`}
           >
@@ -89,6 +98,20 @@ export function Header({ theme = 'light', onSearchClick }: HeaderProps) {
             <User className="w-4 h-4 stroke-[1.4]" />
             {user && (
               <span className="absolute top-2.5 right-2.5 w-1.5 h-1.5 rounded-full bg-emerald-500 ring-2 ring-canvas" />
+            )}
+          </Link>
+
+          {/* Wishlist Link */}
+          <Link
+            href="/wishlist"
+            aria-label={`Wishlist (${wishlistCount} items)`}
+            className={`min-w-[44px] min-h-[44px] flex items-center justify-center p-2 rounded-xl transition-colors duration-200 relative ${subtextColor} hover:${textColor}`}
+          >
+            <Heart className="w-4 h-4 stroke-[1.4]" />
+            {wishlistLoaded && wishlistCount > 0 && (
+              <span
+                className={`absolute top-2.5 right-2.5 w-1.5 h-1.5 rounded-full ring-2 ring-canvas bg-rose-500`}
+              />
             )}
           </Link>
 
@@ -159,6 +182,9 @@ export function Header({ theme = 'light', onSearchClick }: HeaderProps) {
           </nav>
         </div>
       )}
+
+      {/* Search Modal */}
+      <SearchModal isOpen={searchOpen} onClose={() => setSearchOpen(false)} theme={theme} />
     </header>
   );
 }

@@ -146,6 +146,9 @@ export function ProductModal({ isOpen, onClose, product, onSaved }: ProductModal
 
       const res = await fetch('/api/admin/upload', {
         method: 'POST',
+        headers: {
+          'x-admin-key': sessionStorage.getItem('levelx3d_admin_passkey') || '',
+        },
         body: formData,
       });
 
@@ -205,7 +208,10 @@ export function ProductModal({ isOpen, onClose, product, onSaved }: ProductModal
       const method = product ? 'PUT' : 'POST';
       const res = await fetch('/api/admin/products', {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-admin-key': sessionStorage.getItem('levelx3d_admin_passkey') || '',
+        },
         body: JSON.stringify(payload),
       });
 

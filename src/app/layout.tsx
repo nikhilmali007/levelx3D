@@ -4,6 +4,8 @@ import './globals.css';
 import { SmoothScroll } from '@/components/layout/smooth-scroll';
 import { CartDrawer } from '@/components/ecommerce/cart-drawer';
 import { AuthProvider } from '@/context/auth-context';
+import { BackToTop } from '@/components/ui/back-to-top';
+import { CookieConsent } from '@/components/ui/cookie-consent';
 
 const jost = Jost({
   subsets: ['latin'],
@@ -157,6 +159,8 @@ export default function RootLayout({
                 {children}
               </main>
               <CartDrawer />
+              <BackToTop />
+              <CookieConsent />
             </div>
           </SmoothScroll>
         </AuthProvider>

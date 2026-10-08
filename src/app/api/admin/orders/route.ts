@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAdminOrders, updateAdminOrderStatus, OrderStatus } from '@/lib/supabase/admin';
+import { verifyAdminRequest } from '@/lib/admin-auth';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    const auth = await verifyAdminRequest(req);
+    if (!auth.authorized) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
     const orders = await getAdminOrders();
     return NextResponse.json({ success: true, orders });
   } catch (error: any) {
@@ -16,6 +22,11 @@ export async function GET() {
 
 export async function PATCH(req: NextRequest) {
   try {
+    const auth = await verifyAdminRequest(req);
+    if (!auth.authorized) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await req.json();
     const { orderId, status } = body;
 

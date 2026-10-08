@@ -5,8 +5,9 @@ import Image from 'next/image';
 import { Product, ProductOption } from '@/lib/products-data';
 import { useCart } from '@/hooks/use-cart';
 import { formatPrice } from '@/lib/utils';
-import { Share2, Check, ShieldCheck, Sparkles, CheckCircle2, ChevronRight } from 'lucide-react';
+import { Share2, Check, ShieldCheck, Sparkles, CheckCircle2, ChevronRight, Heart, MessageCircle } from 'lucide-react';
 import { QuietButton } from '@/components/ui/quiet-button';
+import { useWishlist } from '@/hooks/use-wishlist';
 
 interface ProductDetailsClientProps {
   product: Product;
@@ -14,8 +15,11 @@ interface ProductDetailsClientProps {
 
 export function ProductDetailsClient({ product }: ProductDetailsClientProps) {
   const { addItem } = useCart();
+  const { isInWishlist, toggleWishlist } = useWishlist();
   const [quantity, setQuantity] = useState(1);
   const [copied, setCopied] = useState(false);
+
+  const inWishlist = isInWishlist(product.id);
 
   // Initialize selected options state
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>(() => {
@@ -275,6 +279,19 @@ export function ProductDetailsClient({ product }: ProductDetailsClientProps) {
               ? `Add to Bag &bull; ${formatPrice(calculatedPrice * quantity)}`
               : 'Out of Stock'}
           </button>
+
+          {/* Wishlist Button */}
+          <button
+            onClick={() => toggleWishlist(product)}
+            className={`p-3 sm:p-3.5 rounded-xl border transition-colors ${
+              inWishlist
+                ? 'bg-ink border-ink text-chalk'
+                : 'bg-canvas border-hairline-light text-slate hover:border-ink hover:text-ink'
+            }`}
+            aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
+          >
+            <Heart className={`w-5 h-5 ${inWishlist ? 'fill-current' : ''}`} />
+          </button>
         </div>
 
         {/* Guarantees & Archival provenance */}
@@ -287,6 +304,29 @@ export function ProductDetailsClient({ product }: ProductDetailsClientProps) {
             <ShieldCheck className="w-3.5 h-3.5 text-slate stroke-[1.5]" />
             <span>Pan-India Secure Insured Courier</span>
           </div>
+        </div>
+
+        {/* WhatsApp Actions */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+          <button
+            onClick={() => {
+              const url = typeof window !== 'undefined' ? window.location.href : '';
+              window.open(`https://wa.me/?text=${encodeURIComponent(`Check out ${product.name} at Level X 3D!\n\nPrice: ${formatPrice(calculatedPrice)}\n\n${url}`)}`, '_blank');
+            }}
+            className="flex items-center justify-center gap-2 py-3 rounded-xl border border-[#25D366] text-[#25D366] hover:bg-[#25D366] hover:text-white transition-colors text-xs font-heading font-medium tracking-wide uppercase"
+          >
+            <MessageCircle className="w-4 h-4" />
+            <span>Share on WhatsApp</span>
+          </button>
+          <button
+            onClick={() => {
+              window.open(`https://wa.me/919999999999?text=${encodeURIComponent(`Hi, I'd like to order ${product.name} (Price: ${formatPrice(calculatedPrice)}).`)}`, '_blank');
+            }}
+            className="flex items-center justify-center gap-2 py-3 rounded-xl bg-[#25D366] text-white hover:bg-[#128C7E] transition-colors text-xs font-heading font-medium tracking-wide uppercase shadow-sm"
+          >
+            <MessageCircle className="w-4 h-4" />
+            <span>Order via WhatsApp</span>
+          </button>
         </div>
       </div>
 

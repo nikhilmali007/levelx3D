@@ -62,7 +62,11 @@ export function AdminDashboard() {
   const fetchProducts = async () => {
     setIsLoadingProducts(true);
     try {
-      const res = await fetch('/api/admin/products');
+      const res = await fetch('/api/admin/products', {
+        headers: {
+          'x-admin-key': sessionStorage.getItem('levelx3d_admin_passkey') || '',
+        },
+      });
       const data = await res.json();
       if (data.success && data.products) {
         setProducts(data.products);
@@ -78,7 +82,11 @@ export function AdminDashboard() {
   const fetchOrders = async () => {
     setIsLoadingOrders(true);
     try {
-      const res = await fetch('/api/admin/orders');
+      const res = await fetch('/api/admin/orders', {
+        headers: {
+          'x-admin-key': sessionStorage.getItem('levelx3d_admin_passkey') || '',
+        },
+      });
       const data = await res.json();
       if (data.success && data.orders) {
         setOrders(data.orders);
@@ -101,7 +109,10 @@ export function AdminDashboard() {
     try {
       const res = await fetch('/api/admin/orders', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-admin-key': sessionStorage.getItem('levelx3d_admin_passkey') || '',
+        },
         body: JSON.stringify({ orderId, status: newStatus }),
       });
 
@@ -128,6 +139,9 @@ export function AdminDashboard() {
     try {
       const res = await fetch(`/api/admin/products?id=${id}`, {
         method: 'DELETE',
+        headers: {
+          'x-admin-key': sessionStorage.getItem('levelx3d_admin_passkey') || '',
+        },
       });
       if (res.ok) {
         setProducts((prev) => prev.filter((p) => p.id !== id));

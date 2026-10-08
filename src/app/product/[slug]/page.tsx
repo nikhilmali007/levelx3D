@@ -5,6 +5,7 @@ import { Footer } from '@/components/layout/footer';
 import { Breadcrumbs } from '@/components/ecommerce/breadcrumbs';
 import { ProductGallery } from '@/components/ecommerce/product-gallery';
 import { ProductDetailsClient } from '@/components/ecommerce/product-details-client';
+import { RelatedProducts } from '@/components/ecommerce/related-products';
 import { getAllProducts, getProductBySlug } from '@/lib/supabase/store';
 
 interface ProductPageProps {
@@ -142,6 +143,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
             <ProductDetailsClient product={product} />
           </div>
         </div>
+
+        <RelatedProducts 
+          currentProductId={product.id} 
+          categorySlug={product.categorySlug} 
+          shelfSlug={product.shelfSlug} 
+        />
       </main>
 
       <Footer />

@@ -3,12 +3,13 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { Star, ShoppingBag, Eye, Sparkles } from 'lucide-react';
+import { Star, ShoppingBag, Eye, Heart } from 'lucide-react';
 import { Product } from '@/types/product';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatPrice } from '@/lib/utils';
 import { useCart } from '@/hooks/use-cart';
+import { useWishlist } from '@/hooks/use-wishlist';
 
 interface ProductCardProps {
   product: Product;
@@ -17,8 +18,11 @@ interface ProductCardProps {
 
 export function ProductCard({ product, onInspect3D }: ProductCardProps) {
   const { addItem } = useCart();
+  const { isInWishlist, toggleWishlist } = useWishlist();
   const [isHovered, setIsHovered] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
+
+  const inWishlist = isInWishlist(product.id);
 
   const handleAddToCart = () => {
     addItem(product);
@@ -49,7 +53,7 @@ export function ProductCard({ product, onInspect3D }: ProductCardProps) {
         <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent opacity-80" />
 
         {/* Top Badges */}
-        <div className="absolute top-3.5 left-3.5 right-3.5 flex items-center justify-between pointer-events-none">
+        <div className="absolute top-3.5 left-3.5 right-3.5 flex items-center justify-between">
           <Badge
             variant={
               product.badge === 'Limited Edition'
@@ -58,14 +62,28 @@ export function ProductCard({ product, onInspect3D }: ProductCardProps) {
                 ? 'default'
                 : 'secondary'
             }
+            className="pointer-events-none"
           >
             {product.badge || product.category}
           </Badge>
 
-          <span className="flex items-center gap-1 bg-slate-950/70 border border-white/10 px-2 py-0.5 rounded-full text-[11px] text-amber-400 font-mono">
-            <Star className="w-3 h-3 fill-amber-400" />
-            {product.rating}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="flex items-center gap-1 bg-slate-950/70 border border-white/10 px-2 py-0.5 rounded-full text-[11px] text-amber-400 font-mono pointer-events-none">
+              <Star className="w-3 h-3 fill-amber-400" />
+              {product.rating}
+            </span>
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleWishlist(product);
+              }}
+              className="p-1.5 rounded-full bg-slate-950/70 border border-white/10 hover:border-cyan/50 hover:bg-slate-900 transition-colors"
+              aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
+            >
+              <Heart className={`w-4 h-4 ${inWishlist ? 'fill-cyan text-cyan' : 'text-slate-300'}`} />
+            </button>
+          </div>
         </div>
 
         {/* Floating 3D Inspect Quick Action */}

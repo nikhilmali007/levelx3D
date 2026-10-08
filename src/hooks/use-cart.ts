@@ -35,7 +35,7 @@ export function useCart() {
         } else {
           setItems([]);
         }
-      } catch (e) {}
+      } catch (e) { console.warn('Context-specific message:', e); }
     };
 
     const handleDrawerState = (e: Event) => {
@@ -68,7 +68,7 @@ export function useCart() {
     try {
       localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(newItems));
       window.dispatchEvent(new Event('cart-updated'));
-    } catch (e) {}
+    } catch (e) { console.warn('Context-specific message:', e); }
   };
 
   const addItem = (product: Product, quantity = 1, selectedOptions?: Record<string, string>) => {

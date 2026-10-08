@@ -2,7 +2,14 @@
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    domains: ['images.unsplash.com', 'assets.aceternity.com'],
+    remotePatterns: [
+      { protocol: 'https', hostname: 'images.unsplash.com' },
+      { protocol: 'https', hostname: 'assets.aceternity.com' },
+      { protocol: 'https', hostname: '*.supabase.co' },
+      { protocol: 'http', hostname: 'localhost' }
+    ],
+    dangerouslyAllowSVG: true,
+    contentDispositionType: 'attachment',
   },
   transpilePackages: ['@supabase/supabase-js'],
 };

@@ -55,6 +55,7 @@ export function AdminGate({ children }: { children: ReactNode }) {
     if (passkeyInput.trim() === ADMIN_PASSKEY) {
       if (typeof window !== 'undefined') {
         sessionStorage.setItem(ADMIN_AUTH_STORAGE_KEY, 'true');
+        sessionStorage.setItem('levelx3d_admin_passkey', passkeyInput.trim());
       }
       setIsUnlocked(true);
     } else {

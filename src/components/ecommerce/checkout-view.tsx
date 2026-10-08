@@ -100,8 +100,48 @@ export function CheckoutView() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderResult, setOrderResult] = useState<CreateOrderResult | null>(null);
 
-  const shippingCost = totalPrice >= FREE_SHIPPING_THRESHOLD_INR || totalPrice === 0 ? 0 : 450;
-  const orderTotal = totalPrice + shippingCost;
+  // Promo Code State
+  const [promoCode, setPromoCode] = useState('');
+  const [discountType, setDiscountType] = useState<'percent' | 'freeship' | null>(null);
+  const [discountValue, setDiscountValue] = useState(0);
+  const [promoError, setPromoError] = useState('');
+  const [promoApplied, setPromoApplied] = useState(false);
+  const [isPromoOpen, setIsPromoOpen] = useState(false);
+
+  const handleApplyPromo = () => {
+    setPromoError('');
+    const code = promoCode.trim().toUpperCase();
+    if (code === 'FIRST10') {
+      setDiscountType('percent');
+      setDiscountValue(10);
+      setPromoApplied(true);
+    } else if (code === 'LEVEL20') {
+      setDiscountType('percent');
+      setDiscountValue(20);
+      setPromoApplied(true);
+    } else if (code === 'FREESHIP') {
+      setDiscountType('freeship');
+      setDiscountValue(0);
+      setPromoApplied(true);
+    } else {
+      setPromoError('Invalid or expired promo code');
+      setPromoApplied(false);
+      setDiscountType(null);
+      setDiscountValue(0);
+    }
+  };
+
+  const removePromo = () => {
+    setPromoCode('');
+    setPromoApplied(false);
+    setDiscountType(null);
+    setDiscountValue(0);
+    setPromoError('');
+  };
+
+  const discountAmount = discountType === 'percent' ? (totalPrice * discountValue) / 100 : 0;
+  const shippingCost = discountType === 'freeship' ? 0 : (totalPrice >= FREE_SHIPPING_THRESHOLD_INR || totalPrice === 0 ? 0 : 450);
+  const orderTotal = Math.max(0, totalPrice - discountAmount + shippingCost);
 
   // Validation function
   const validate = (): boolean => {
@@ -406,11 +446,59 @@ export function CheckoutView() {
                 ))}
               </div>
 
+              <div className="pt-3 border-t border-hairline-light">
+                {!isPromoOpen && !promoApplied ? (
+                  <button
+                    type="button"
+                    onClick={() => setIsPromoOpen(true)}
+                    className="text-xs font-heading font-medium tracking-wide uppercase text-slate hover:text-ink transition-colors flex items-center gap-1.5"
+                  >
+                    <span>Have a promo code?</span>
+                  </button>
+                ) : promoApplied ? (
+                  <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex flex-col gap-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-mono text-emerald-700 font-semibold">{promoCode.toUpperCase()} Applied</span>
+                      <button type="button" onClick={removePromo} className="text-xs font-sans text-emerald-600 hover:text-emerald-800 underline">Remove</button>
+                    </div>
+                    <span className="text-[11px] font-sans text-emerald-600">
+                      {discountType === 'percent' ? `${discountValue}% off your order.` : 'Free shipping on your order.'}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={promoCode}
+                        onChange={(e) => setPromoCode(e.target.value)}
+                        placeholder="Enter code"
+                        className="flex-1 bg-white border border-hairline-light rounded-xl px-3 py-2 text-xs text-ink outline-none uppercase"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleApplyPromo}
+                        className="px-4 py-2 bg-ink text-chalk rounded-xl text-xs font-medium hover:bg-onyx transition-colors"
+                      >
+                        Apply
+                      </button>
+                    </div>
+                    {promoError && <p className="text-[11px] text-red-500 font-sans">{promoError}</p>}
+                  </div>
+                )}
+              </div>
+
               <div className="pt-3 border-t border-hairline-light space-y-1.5 text-xs font-sans text-slate">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
                   <span className="font-mono text-ink">{formatPrice(totalPrice)}</span>
                 </div>
+                {discountAmount > 0 && (
+                  <div className="flex justify-between text-emerald-600">
+                    <span>Discount ({discountValue}%)</span>
+                    <span className="font-mono">-{formatPrice(discountAmount)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between">
                   <span>Shipping</span>
                   <span className="text-ink">
@@ -766,12 +854,61 @@ export function CheckoutView() {
               })}
             </div>
 
+            {/* Promo Code Block */}
+            <div className="pt-4 border-t border-hairline-light">
+              {!isPromoOpen && !promoApplied ? (
+                <button
+                  type="button"
+                  onClick={() => setIsPromoOpen(true)}
+                  className="text-xs font-heading font-medium tracking-wide uppercase text-slate hover:text-ink transition-colors flex items-center gap-1.5"
+                >
+                  <span>Have a promo code?</span>
+                </button>
+              ) : promoApplied ? (
+                <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex flex-col gap-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-mono text-emerald-700 font-semibold">{promoCode.toUpperCase()} Applied</span>
+                    <button type="button" onClick={removePromo} className="text-xs font-sans text-emerald-600 hover:text-emerald-800 underline">Remove</button>
+                  </div>
+                  <span className="text-[11px] font-sans text-emerald-600">
+                    {discountType === 'percent' ? `${discountValue}% off your order.` : 'Free shipping on your order.'}
+                  </span>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={promoCode}
+                      onChange={(e) => setPromoCode(e.target.value)}
+                      placeholder="Enter code"
+                      className="flex-1 bg-white border border-hairline-light rounded-xl px-3 py-2 text-xs text-ink outline-none uppercase"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleApplyPromo}
+                      className="px-4 py-2 bg-ink text-chalk rounded-xl text-xs font-medium hover:bg-onyx transition-colors"
+                    >
+                      Apply
+                    </button>
+                  </div>
+                  {promoError && <p className="text-[11px] text-red-500 font-sans">{promoError}</p>}
+                </div>
+              )}
+            </div>
+
             {/* Price Calculations */}
             <div className="pt-4 border-t border-hairline-light space-y-2 text-xs font-sans text-slate">
               <div className="flex justify-between">
                 <span>Subtotal</span>
                 <span className="font-mono text-ink font-medium">{formatPrice(totalPrice)}</span>
               </div>
+              {discountAmount > 0 && (
+                <div className="flex justify-between text-emerald-600">
+                  <span>Discount ({discountValue}%)</span>
+                  <span className="font-mono font-medium">-{formatPrice(discountAmount)}</span>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span>Pan-India Insured Courier</span>
                 <span className="text-ink">

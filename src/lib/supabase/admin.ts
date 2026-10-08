@@ -1,4 +1,5 @@
 import { supabase, isSupabaseConfigured } from './client';
+import { supabaseAdmin, isServiceRoleConfigured } from './server';
 import { generateUUID } from './orders';
 import { INITIAL_PRODUCTS, Product, SHELVES_DATA } from '@/lib/products-data';
 import { shelfToSlug } from './store';
@@ -219,7 +220,7 @@ export async function getAdminProducts(): Promise<AdminProduct[]> {
       localProducts.forEach((p) => {
         productsMap.set(p.id, p);
       });
-    } catch (e) {}
+    } catch (e) { console.warn('Context-specific message:', e); }
   }
 
   return Array.from(productsMap.values()).sort((a, b) => {
@@ -260,10 +261,11 @@ export async function saveAdminProduct(
 
   // 2a. Supabase persistence
   if (isSupabaseConfigured) {
+    const client = isServiceRoleConfigured ? supabaseAdmin : supabase;
     try {
       // Find or link category_id
       let categoryId: string | null = null;
-      const { data: catRecord } = await supabase
+      const { data: catRecord } = await client
         .from('categories')
         .select('id')
         .eq('slug', categorySlug)
@@ -274,7 +276,7 @@ export async function saveAdminProduct(
       }
 
       // Upsert product in public.products
-      const { error: prodErr } = await supabase.from('products').upsert({
+      const { error: prodErr } = await client.from('products').upsert({
         id: productId,
         name: fullProduct.name,
         slug: fullProduct.slug,
@@ -293,7 +295,7 @@ export async function saveAdminProduct(
       } else {
         // Upsert images
         if (fullProduct.image_url) {
-          await supabase.from('product_images').upsert({
+          await client.from('product_images').upsert({
             id: generateUUID(),
             product_id: productId,
             url: fullProduct.image_url,
@@ -304,7 +306,7 @@ export async function saveAdminProduct(
         // Upsert options
         if (fullProduct.options && fullProduct.options.length > 0) {
           // Delete old options
-          await supabase.from('product_options').delete().eq('product_id', productId);
+          await client.from('product_options').delete().eq('product_id', productId);
           // Insert new options
           const optionsData = fullProduct.options.map((opt) => ({
             id: opt.id || generateUUID(),
@@ -313,7 +315,7 @@ export async function saveAdminProduct(
             type: opt.type,
             values: opt.values,
           }));
-          await supabase.from('product_options').insert(optionsData);
+          await client.from('product_options').insert(optionsData);
         }
       }
     } catch (e) {
@@ -336,7 +338,7 @@ export async function saveAdminProduct(
         existing.unshift(fullProduct);
       }
       localStorage.setItem(LOCAL_ADMIN_PRODUCTS_KEY, JSON.stringify(existing));
-    } catch (e) {}
+    } catch (e) { console.warn('Context-specific message:', e); }
   }
 
   return { success: true, product: fullProduct };
@@ -349,9 +351,10 @@ export async function deleteAdminProduct(productId: string): Promise<boolean> {
   memoryStore.products.delete(productId);
 
   if (isSupabaseConfigured) {
+    const client = isServiceRoleConfigured ? supabaseAdmin : supabase;
     try {
-      await supabase.from('products').delete().eq('id', productId);
-    } catch (e) {}
+      await client.from('products').delete().eq('id', productId);
+    } catch (e) { console.warn('Context-specific message:', e); }
   }
 
   if (typeof window !== 'undefined') {
@@ -361,7 +364,7 @@ export async function deleteAdminProduct(productId: string): Promise<boolean> {
       );
       const filtered = existing.filter((p) => p.id !== productId);
       localStorage.setItem(LOCAL_ADMIN_PRODUCTS_KEY, JSON.stringify(filtered));
-    } catch (e) {}
+    } catch (e) { console.warn('Context-specific message:', e); }
   }
 
   return true;
@@ -526,7 +529,7 @@ export async function getAdminOrders(): Promise<AdminOrder[]> {
           });
         }
       });
-    } catch (e) {}
+    } catch (e) { console.warn('Context-specific message:', e); }
   }
 
   return Array.from(ordersMap.values()).sort(
@@ -543,10 +546,11 @@ export async function updateAdminOrderStatus(
 ): Promise<{ success: boolean; error?: string }> {
   // If Supabase is configured:
   if (isSupabaseConfigured) {
+    const client = isServiceRoleConfigured ? supabaseAdmin : supabase;
     try {
       // Map 'printing' to 'processing' if schema check requires it, or pass directly
       const dbStatus = newStatus === 'printing' ? 'processing' : newStatus;
-      const { error } = await supabase
+      const { error } = await client
         .from('orders')
         .update({ status: dbStatus })
         .eq('id', orderId);
@@ -576,7 +580,7 @@ export async function updateAdminOrderStatus(
         return o;
       });
       localStorage.setItem(LOCAL_PENDING_ORDERS_KEY, JSON.stringify(updated));
-    } catch (e) {}
+    } catch (e) { console.warn('Context-specific message:', e); }
   }
 
   return { success: true };

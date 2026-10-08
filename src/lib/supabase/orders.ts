@@ -186,7 +186,7 @@ export async function createPendingOrder(params: CreateOrderParams): Promise<Cre
         createdAt,
       });
       localStorage.setItem('levelx3d_pending_orders', JSON.stringify(existing.slice(0, 50)));
-    } catch (e) {}
+    } catch (e) { console.warn('Context-specific message:', e); }
   }
 
   return {
@@ -299,7 +299,7 @@ export async function getCustomerOrders(email: string, authUserId?: string): Pro
           options_json: it.selectedOptions || {},
         })),
       }));
-    } catch (e) {}
+    } catch (e) { console.warn('Context-specific message:', e); }
   }
 
   return [];
