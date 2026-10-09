@@ -291,6 +291,28 @@ export function CartPageView() {
                 Order Summary
               </h3>
 
+              {/* Free shipping progress bar */}
+              <div className="p-3.5 bg-white rounded-2xl border border-hairline-light space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate text-[11px]">
+                    {totalPrice >= FREE_SHIPPING_THRESHOLD_INR ? (
+                      <span className="text-emerald-700 font-medium">Complimentary Courier Qualified</span>
+                    ) : (
+                      <span>Add {formatPrice(FREE_SHIPPING_THRESHOLD_INR - totalPrice)} for complimentary courier</span>
+                    )}
+                  </span>
+                  <span className="font-mono text-[10px] text-slate">
+                    {Math.min(100, Math.round((totalPrice / FREE_SHIPPING_THRESHOLD_INR) * 100))}%
+                  </span>
+                </div>
+                <div className="w-full h-1 bg-[#E4E1DA] rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-ink transition-all duration-300"
+                    style={{ width: `${Math.min(100, Math.round((totalPrice / FREE_SHIPPING_THRESHOLD_INR) * 100))}%` }}
+                  />
+                </div>
+              </div>
+
               <div className="space-y-3 text-xs font-sans text-slate">
                 <div className="flex justify-between">
                   <span>Subtotal ({totalItems} items)</span>
@@ -303,12 +325,6 @@ export function CartPageView() {
                     {shippingCost === 0 ? 'Complimentary' : formatPrice(shippingCost)}
                   </span>
                 </div>
-
-                {totalPrice < FREE_SHIPPING_THRESHOLD_INR && (
-                  <p className="text-[11px] text-slate/80 font-mono">
-                    Add {formatPrice(FREE_SHIPPING_THRESHOLD_INR - totalPrice)} more for complimentary insured courier.
-                  </p>
-                )}
 
                 <div className="flex justify-between pt-4 border-t border-hairline-light text-base font-heading font-light tracking-wide text-ink">
                   <span className="uppercase">Total (INR)</span>

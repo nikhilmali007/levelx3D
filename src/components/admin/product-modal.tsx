@@ -41,6 +41,8 @@ export function ProductModal({ isOpen, onClose, product, onSaved }: ProductModal
   const [isPremium, setIsPremium] = useState(false);
   const [status, setStatus] = useState<'active' | 'draft' | 'archived'>('active');
   const [imageUrl, setImageUrl] = useState('');
+  const [images, setImages] = useState<string[]>([]);
+  const [newImageUrlInput, setNewImageUrlInput] = useState('');
 
   // Options State
   const [options, setOptions] = useState<AdminProductOption[]>([]);
@@ -67,7 +69,11 @@ export function ProductModal({ isOpen, onClose, product, onSaved }: ProductModal
       setIsCustomizable(Boolean(product.is_customizable));
       setIsPremium(Boolean(product.is_premium));
       setStatus(product.status || 'active');
-      setImageUrl(product.image_url || '');
+      const prodImages = product.images && product.images.length > 0
+        ? product.images
+        : product.image_url ? [product.image_url] : [];
+      setImages(prodImages);
+      setImageUrl(prodImages[0] || product.image_url || '');
       setOptions(product.options || []);
     } else {
       // Defaults for new product
@@ -83,6 +89,8 @@ export function ProductModal({ isOpen, onClose, product, onSaved }: ProductModal
       setIsPremium(false);
       setStatus('active');
       setImageUrl('');
+      setImages([]);
+      setNewImageUrlInput('');
       setOptions([
         {
           id: 'opt-1',
@@ -134,35 +142,71 @@ export function ProductModal({ isOpen, onClose, product, onSaved }: ProductModal
   };
 
   const handleImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const fileList = e.target.files;
+    if (!fileList || fileList.length === 0) return;
 
     setIsUploading(true);
     setErrorMessage(null);
 
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
+    const uploadedUrls: string[] = [];
+    const files = Array.from(fileList);
 
-      const res = await fetch('/api/admin/upload', {
-        method: 'POST',
-        headers: {
-          'x-admin-key': sessionStorage.getItem('levelx3d_admin_passkey') || '',
-        },
-        body: formData,
-      });
+    for (const file of files) {
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
 
-      const data = await res.json();
-      if (res.ok && data.url) {
-        setImageUrl(data.url);
-      } else {
-        setErrorMessage(data.error || 'Failed to upload image.');
+        const res = await fetch('/api/admin/upload', {
+          method: 'POST',
+          headers: {
+            'x-admin-key': sessionStorage.getItem('levelx3d_admin_passkey') || '',
+          },
+          body: formData,
+        });
+
+        const data = await res.json();
+        if (res.ok && data.url) {
+          uploadedUrls.push(data.url);
+        } else {
+          setErrorMessage(data.error || 'Failed to upload one or more images.');
+        }
+      } catch (err: any) {
+        setErrorMessage(err.message || 'Error uploading image.');
       }
-    } catch (err: any) {
-      setErrorMessage(err.message || 'Error uploading image.');
-    } finally {
-      setIsUploading(false);
     }
+
+    if (uploadedUrls.length > 0) {
+      const updated = [...images, ...uploadedUrls];
+      setImages(updated);
+      setImageUrl(updated[0]);
+    }
+
+    setIsUploading(false);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleAddImageUrl = () => {
+    if (!newImageUrlInput.trim()) return;
+    const url = newImageUrlInput.trim();
+    const updated = [...images, url];
+    setImages(updated);
+    if (!imageUrl) setImageUrl(url);
+    setNewImageUrlInput('');
+  };
+
+  const handleRemoveImage = (index: number) => {
+    const updated = images.filter((_, idx) => idx !== index);
+    setImages(updated);
+    setImageUrl(updated[0] || '');
+  };
+
+  const handleSetPrimaryImage = (index: number) => {
+    if (index === 0) return;
+    const item = images[index];
+    const remaining = images.filter((_, idx) => idx !== index);
+    const updated = [item, ...remaining];
+    setImages(updated);
+    setImageUrl(item);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -182,6 +226,9 @@ export function ProductModal({ isOpen, onClose, product, onSaved }: ProductModal
     setIsSubmitting(true);
 
     try {
+      const finalImages = images.length > 0 ? images : (imageUrl ? [imageUrl] : ['https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=1200&auto=format&fit=crop&q=85']);
+      const primaryImage = finalImages[0];
+
       const payload = {
         id: product?.id,
         name: name.trim(),
@@ -195,13 +242,8 @@ export function ProductModal({ isOpen, onClose, product, onSaved }: ProductModal
         is_customizable: isCustomizable,
         is_premium: isPremium,
         status,
-        image_url:
-          imageUrl ||
-          'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=1200&auto=format&fit=crop&q=85',
-        images: [
-          imageUrl ||
-            'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=1200&auto=format&fit=crop&q=85',
-        ],
+        image_url: primaryImage,
+        images: finalImages,
         options,
       };
 
@@ -452,64 +494,117 @@ export function ProductModal({ isOpen, onClose, product, onSaved }: ProductModal
 
           {/* Section 3: Product Image & Supabase Storage */}
           <div className="space-y-4">
-            <h3 className="font-heading text-xs uppercase tracking-apple-wide text-slate font-light border-b border-hairline-light pb-2">
-              3. Visual Asset & Supabase Storage
-            </h3>
+            <div className="flex items-center justify-between border-b border-hairline-light pb-2">
+              <h3 className="font-heading text-xs uppercase tracking-apple-wide text-slate font-light">
+                3. Visual Assets Gallery ({images.length} Photos)
+              </h3>
+              <span className="text-[10px] font-mono text-slate">
+                First photo is the primary storefront cover
+              </span>
+            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
-              {/* Preview Thumbnail */}
-              <div className="md:col-span-4">
-                <div className="relative aspect-square w-full rounded-2xl overflow-hidden bg-[#ECE9E2] border border-hairline-light flex items-center justify-center">
-                  {imageUrl ? (
+            {/* Gallery Thumbnail Grid */}
+            {images.length > 0 && (
+              <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3 pt-1">
+                {images.map((img, idx) => (
+                  <div
+                    key={img + idx}
+                    className={`group relative aspect-square rounded-xl overflow-hidden border bg-[#ECE9E2] ${
+                      idx === 0 ? 'border-ink ring-2 ring-ink/20 shadow-xs' : 'border-hairline-light'
+                    }`}
+                  >
                     <Image
-                      src={imageUrl}
-                      alt="Product preview"
+                      src={img}
+                      alt={`Product image ${idx + 1}`}
                       fill
-                      sizes="300px"
+                      sizes="120px"
                       className="object-cover"
                     />
-                  ) : (
-                    <span className="text-xs font-mono text-slate uppercase">No Image Loaded</span>
-                  )}
-                </div>
-              </div>
 
-              {/* Upload Controls */}
-              <div className="md:col-span-8 space-y-4">
+                    {/* Primary Badge */}
+                    {idx === 0 && (
+                      <span className="absolute top-1.5 left-1.5 z-10 text-[8px] font-mono uppercase px-1.5 py-0.5 rounded bg-onyx text-chalk shadow-xs">
+                        Cover
+                      </span>
+                    )}
+
+                    {/* Hover controls overlay */}
+                    <div className="absolute inset-0 bg-onyx/70 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1.5 p-1 z-20">
+                      {idx !== 0 && (
+                        <button
+                          type="button"
+                          onClick={() => handleSetPrimaryImage(idx)}
+                          className="px-2 py-0.5 rounded bg-white text-ink text-[9px] font-mono uppercase font-semibold hover:bg-slate-100 transition-colors"
+                        >
+                          Make Cover
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveImage(idx)}
+                        className="p-1 rounded bg-red-600 text-white hover:bg-red-700 transition-colors"
+                        title="Remove image"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Upload Controls & URL Ingestion */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-start pt-2">
+              {/* File Upload Box */}
+              <div className="md:col-span-7">
                 <div
                   onClick={() => fileInputRef.current?.click()}
                   className="p-6 border-2 border-dashed border-hairline-dark/30 hover:border-ink rounded-2xl text-center cursor-pointer transition-colors bg-white hover:bg-slate-50/50 space-y-2"
                 >
-                  <Upload className="w-6 h-6 mx-auto text-slate" />
+                  <Upload className="w-5 h-5 mx-auto text-slate" />
                   <p className="text-xs text-ink font-medium">
                     {isUploading
                       ? 'Uploading to Supabase Storage...'
-                      : 'Click to upload product image to Supabase Storage'}
+                      : 'Upload One or Multiple Photos to Supabase'}
                   </p>
-                  <p className="text-[11px] text-slate font-mono">
-                    Accepts PNG, JPG, WEBP (stored in bucket product-images)
+                  <p className="text-[10px] text-slate font-mono">
+                    Select multiple PNG, JPG, or WEBP files (Max 5MB each)
                   </p>
                   <input
                     ref={fileInputRef}
                     type="file"
+                    multiple
                     accept="image/*"
                     onChange={handleImageFileChange}
                     className="hidden"
                   />
                 </div>
+              </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-xs font-mono uppercase text-slate tracking-wider block">
-                    Or Direct Image URL
-                  </label>
+              {/* Direct URL Box */}
+              <div className="md:col-span-5 space-y-2 bg-white p-4 rounded-2xl border border-hairline-light">
+                <label className="text-[11px] font-mono uppercase text-slate tracking-wider block">
+                  Add Photo via Direct URL
+                </label>
+                <div className="flex gap-2">
                   <input
                     type="url"
-                    value={imageUrl}
-                    onChange={(e) => setImageUrl(e.target.value)}
-                    placeholder="https://images.unsplash.com/photo-..."
-                    className="w-full bg-white border border-hairline-light focus:border-ink rounded-xl px-4 py-3 text-xs sm:text-sm font-mono text-ink outline-none"
+                    value={newImageUrlInput}
+                    onChange={(e) => setNewImageUrlInput(e.target.value)}
+                    placeholder="https://images.unsplash..."
+                    className="flex-1 bg-canvas border border-hairline-light focus:border-ink rounded-xl px-3 py-2 text-xs font-mono text-ink outline-none"
                   />
+                  <button
+                    type="button"
+                    onClick={handleAddImageUrl}
+                    className="py-2 px-3 rounded-xl bg-onyx hover:bg-ink text-chalk text-xs font-heading font-light uppercase tracking-wide shrink-0 transition-colors"
+                  >
+                    Add
+                  </button>
                 </div>
+                <span className="text-[10px] font-mono text-slate block">
+                  Paste external Unsplash, CDN, or cloud asset link
+                </span>
               </div>
             </div>
           </div>

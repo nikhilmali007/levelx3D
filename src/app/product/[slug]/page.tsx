@@ -6,6 +6,7 @@ import { Breadcrumbs } from '@/components/ecommerce/breadcrumbs';
 import { ProductGallery } from '@/components/ecommerce/product-gallery';
 import { ProductDetailsClient } from '@/components/ecommerce/product-details-client';
 import { RelatedProducts } from '@/components/ecommerce/related-products';
+import { ProductReviews } from '@/components/ecommerce/product-reviews';
 import { getAllProducts, getProductBySlug } from '@/lib/supabase/store';
 
 interface ProductPageProps {
@@ -143,6 +144,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
             <ProductDetailsClient product={product} />
           </div>
         </div>
+
+        {/* Collector Reviews */}
+        <ProductReviews productId={product.id} productName={product.name} />
 
         <RelatedProducts 
           currentProductId={product.id} 

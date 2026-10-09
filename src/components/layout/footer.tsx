@@ -170,6 +170,11 @@ export function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/track" className="hover:text-chalk transition-colors min-h-[44px] flex items-center py-1">
+                  Track Fabrication Order
+                </Link>
+              </li>
+              <li>
                 <Link href="/#shipping" className="hover:text-chalk transition-colors min-h-[44px] flex items-center py-1">
                   Worldwide Shipping
                 </Link>

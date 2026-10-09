@@ -39,6 +39,7 @@ export function Header({ theme = 'light', onSearchClick }: HeaderProps) {
     { label: 'Shop', href: '/shop' },
     { label: 'Premium', href: '/shop/signature-premium' },
     { label: 'Custom Studio', href: '/#studio' },
+    { label: 'Track Order', href: '/track' },
     { label: 'About', href: '/#about' },
   ];
 
