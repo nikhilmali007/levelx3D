@@ -160,6 +160,11 @@ export function Footer() {
             </h4>
             <ul className="space-y-1 text-xs font-sans text-chalk/80">
               <li>
+                <Link href="/account/returns" className="hover:text-chalk transition-colors min-h-[44px] flex items-center py-1">
+                  Returns & Refunds
+                </Link>
+              </li>
+              <li>
                 <Link href="/#terms" className="hover:text-chalk transition-colors min-h-[44px] flex items-center py-1">
                   Terms of Fabrication
                 </Link>

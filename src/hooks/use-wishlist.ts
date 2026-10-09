@@ -42,6 +42,9 @@ export function useWishlist() {
       saveWishlist(items.filter((item) => item.id !== product.id));
     } else {
       saveWishlist([...items, product]);
+      import('@/lib/analytics').then(({ trackEvent }) => {
+        trackEvent('wishlist_add', { item_id: product.id, item_name: product.name });
+      });
     }
   };
 

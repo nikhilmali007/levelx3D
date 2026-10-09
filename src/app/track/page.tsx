@@ -262,14 +262,15 @@ function TrackOrderContent() {
                   {order.status === 'printing' ? 'In SLA Fabrication' : order.status.toUpperCase()}
                 </span>
 
-                <button
-                  onClick={handlePrintReceipt}
-                  className="py-2 px-3.5 rounded-xl border border-hairline-light bg-white hover:border-ink text-xs font-sans text-slate hover:text-ink transition-colors flex items-center gap-1.5 shadow-2xs"
-                  title="Print official receipt"
+                <Link
+                  href={`/invoice/${order.id}`}
+                  target="_blank"
+                  className="py-2 px-3.5 rounded-xl border border-hairline-light bg-white hover:border-ink text-xs font-heading uppercase text-slate hover:text-ink transition-colors flex items-center gap-1.5 shadow-2xs"
+                  title="Download Invoice"
                 >
                   <FileText className="w-3.5 h-3.5" />
-                  <span>Tax Invoice</span>
-                </button>
+                  <span>Download Invoice</span>
+                </Link>
               </div>
             </div>
 

@@ -24,8 +24,9 @@ import { Breadcrumbs } from '@/components/ecommerce/breadcrumbs';
 import { QuietButton } from '@/components/ui/quiet-button';
 import { CreateOrderResult } from '@/lib/supabase/orders';
 import { useAuth } from '@/context/auth-context';
+import { calculateGST } from '@/lib/gst';
 
-const FREE_SHIPPING_THRESHOLD_INR = 5000;
+import { calculateShipping, ShippingZone } from '@/lib/shipping';
 
 const INDIAN_STATES = [
   'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa',
@@ -142,8 +143,19 @@ export function CheckoutView() {
   };
 
   const discountAmount = discountType === 'percent' ? (totalPrice * discountValue) / 100 : 0;
-  const shippingCost = discountType === 'freeship' ? 0 : (totalPrice >= FREE_SHIPPING_THRESHOLD_INR || totalPrice === 0 ? 0 : 450);
+  const [isExpress, setIsExpress] = useState(false);
+  const [shippingResult, setShippingResult] = useState(calculateShipping('', totalPrice, isExpress));
+
+  useEffect(() => {
+    setShippingResult(calculateShipping(formData.pincode, totalPrice, isExpress));
+  }, [formData.pincode, totalPrice, isExpress]);
+
+  const shippingCost = discountType === 'freeship' ? 0 : shippingResult.cost;
   const orderTotal = Math.max(0, totalPrice - discountAmount + shippingCost);
+
+  const taxableAmount = Math.max(0, totalPrice - discountAmount);
+  const gstBreakdown = calculateGST(taxableAmount, formData.state);
+  const [showGst, setShowGst] = useState(false);
 
   // Validation function
   const validate = (): boolean => {
@@ -217,6 +229,10 @@ export function CheckoutView() {
     }
 
     setIsSubmitting(true);
+    
+    import('@/lib/analytics').then(({ trackEcommerceEvent }) => {
+      trackEcommerceEvent('begin_checkout', items, orderTotal);
+    });
 
     try {
       const response = await fetch('/api/orders/create', {
@@ -229,6 +245,9 @@ export function CheckoutView() {
           shippingInr: shippingCost,
           totalInr: orderTotal,
           authUserId: user?.id || undefined,
+          shippingZone: shippingResult.zone,
+          deliveryEstimate: shippingResult.deliveryEstimate,
+          gstJson: gstBreakdown,
         }),
       });
 
@@ -237,6 +256,10 @@ export function CheckoutView() {
       if (response.ok && data.success) {
         setOrderResult(data);
         clearCart();
+        
+        import('@/lib/analytics').then(({ trackEcommerceEvent }) => {
+          trackEcommerceEvent('purchase', items, orderTotal);
+        });
       } else {
         alert(data.error || 'Failed to create order. Please verify your details.');
       }
@@ -304,6 +327,9 @@ export function CheckoutView() {
               <span className="font-mono font-semibold text-sm text-ink">
                 {formatPrice(orderResult.amountPaise / 100)} ({orderResult.amountPaise} paise)
               </span>
+            </div>
+            <div className="text-center pt-2 text-[10px] text-slate font-mono">
+              GST (18% incl.): {formatPrice(gstBreakdown.gstAmount)} | GSTIN: —
             </div>
           </div>
 
@@ -376,14 +402,15 @@ export function CheckoutView() {
                 <ArrowRight className="w-3.5 h-3.5 stroke-[1.4]" />
               </button>
 
-              <button
-                onClick={() => window.print()}
-                className="py-3 px-4 border border-chalk/20 hover:border-chalk text-chalk text-xs font-sans rounded-xl flex items-center justify-center gap-1.5 transition-colors"
-                title="Print Tax Receipt"
+              <Link
+                href={`/invoice/${orderResult.orderId}`}
+                target="_blank"
+                className="py-3 px-4 border border-chalk/20 hover:border-chalk text-chalk text-xs font-heading uppercase rounded-xl flex items-center justify-center gap-1.5 transition-colors"
+                title="Download Invoice"
               >
                 <FileText className="w-3.5 h-3.5" />
-                <span>Print Receipt</span>
-              </button>
+                <span>Download Invoice</span>
+              </Link>
             </div>
           </div>
 
@@ -543,8 +570,42 @@ export function CheckoutView() {
 
               <div className="pt-3 border-t border-hairline-light space-y-1.5 text-xs font-sans text-slate">
                 <div className="flex justify-between">
-                  <span>Subtotal</span>
+                  <span>Subtotal (incl. GST)</span>
                   <span className="font-mono text-ink">{formatPrice(totalPrice)}</span>
+                </div>
+                
+                <div className="pl-4">
+                  <button type="button" onClick={() => setShowGst(!showGst)} className="text-[10px] text-slate hover:text-ink transition-colors flex items-center gap-1 mb-1">
+                    {showGst ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                    {showGst ? 'Hide' : 'Show'} GST breakdown
+                  </button>
+                  <AnimatePresence>
+                    {showGst && (
+                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="font-mono text-[11px] text-slate overflow-hidden">
+                        <div className="flex justify-between py-0.5">
+                          <span>├ Base Price</span>
+                          <span>{formatPrice(gstBreakdown.subtotalBeforeGst)}</span>
+                        </div>
+                        {gstBreakdown.isInterState ? (
+                          <div className="flex justify-between py-0.5">
+                            <span>└ IGST (18%)</span>
+                            <span>{formatPrice(gstBreakdown.igst)}</span>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="flex justify-between py-0.5">
+                              <span>├ CGST (9%)</span>
+                              <span>{formatPrice(gstBreakdown.cgst)}</span>
+                            </div>
+                            <div className="flex justify-between py-0.5">
+                              <span>└ SGST (9%)</span>
+                              <span>{formatPrice(gstBreakdown.sgst)}</span>
+                            </div>
+                          </>
+                        )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
                 {discountAmount > 0 && (
                   <div className="flex justify-between text-emerald-600">
@@ -820,6 +881,27 @@ export function CheckoutView() {
                     ))}
                   </select>
                 </div>
+
+                {/* Shipping Calculation */}
+                {formData.pincode.length === 6 && (
+                  <div className="sm:col-span-2 mt-4 p-4 rounded-xl border border-hairline-light bg-[#ECE9E2]/30 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-mono text-slate">Shipping Zone:</span>
+                      <span className="text-xs font-medium text-ink">{shippingResult.zoneName}</span>
+                    </div>
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        checked={isExpress} 
+                        onChange={(e) => setIsExpress(e.target.checked)}
+                        className="w-4 h-4 rounded border-hairline-light text-ink focus:ring-ink"
+                      />
+                      <span className="text-xs font-sans text-ink">
+                        Express Delivery ({shippingResult.deliveryEstimate})
+                      </span>
+                    </label>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -952,9 +1034,43 @@ export function CheckoutView() {
 
             {/* Price Calculations */}
             <div className="pt-4 border-t border-hairline-light space-y-2 text-xs font-sans text-slate">
-              <div className="flex justify-between">
-                <span>Subtotal</span>
+              <div className="flex justify-between items-center">
+                <span>Subtotal (incl. GST)</span>
                 <span className="font-mono text-ink font-medium">{formatPrice(totalPrice)}</span>
+              </div>
+
+              <div className="pl-4">
+                <button type="button" onClick={() => setShowGst(!showGst)} className="text-[10px] text-slate hover:text-ink transition-colors flex items-center gap-1 mb-1">
+                  {showGst ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                  {showGst ? 'Hide' : 'Show'} GST breakdown
+                </button>
+                <AnimatePresence>
+                  {showGst && (
+                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="font-mono text-[11px] text-slate overflow-hidden">
+                      <div className="flex justify-between py-0.5">
+                        <span>├ Base Price</span>
+                        <span>{formatPrice(gstBreakdown.subtotalBeforeGst)}</span>
+                      </div>
+                      {gstBreakdown.isInterState ? (
+                        <div className="flex justify-between py-0.5">
+                          <span>└ IGST (18%)</span>
+                          <span>{formatPrice(gstBreakdown.igst)}</span>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="flex justify-between py-0.5">
+                            <span>├ CGST (9%)</span>
+                            <span>{formatPrice(gstBreakdown.cgst)}</span>
+                          </div>
+                          <div className="flex justify-between py-0.5">
+                            <span>└ SGST (9%)</span>
+                            <span>{formatPrice(gstBreakdown.sgst)}</span>
+                          </div>
+                        </>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
               {discountAmount > 0 && (
                 <div className="flex justify-between text-emerald-600">
@@ -963,9 +1079,9 @@ export function CheckoutView() {
                 </div>
               )}
               <div className="flex justify-between">
-                <span>Pan-India Insured Courier</span>
+                <span>Shipping ({shippingResult.zoneName}, {shippingResult.deliveryEstimate})</span>
                 <span className="text-ink">
-                  {shippingCost === 0 ? 'Complimentary' : formatPrice(shippingCost)}
+                  {shippingCost === 0 ? 'FREE' : formatPrice(shippingCost)}
                 </span>
               </div>
               <div className="flex justify-between pt-3 border-t border-hairline-light text-base font-heading font-light tracking-wide text-ink">

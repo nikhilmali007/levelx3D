@@ -15,7 +15,8 @@ import {
   ExternalLink,
   MapPin,
   ShoppingBag,
-  RefreshCw
+  RefreshCw,
+  FileText
 } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import { getCustomerOrders, OrderRecord } from '@/lib/supabase/orders';
@@ -244,6 +245,15 @@ export function OrdersView() {
                     <span className="font-mono font-medium text-base sm:text-lg text-ink">
                       {formatPrice(order.total_inr)}
                     </span>
+                    <Link
+                      href={`/invoice/${order.id}`}
+                      target="_blank"
+                      className="py-1.5 px-3 rounded-xl border border-hairline-light bg-white hover:border-ink text-[10px] font-heading uppercase text-slate hover:text-ink transition-colors flex items-center gap-1 shadow-2xs"
+                      title="Download Invoice"
+                    >
+                      <FileText className="w-3 h-3" />
+                      <span>Invoice</span>
+                    </Link>
                   </div>
                 </div>
 

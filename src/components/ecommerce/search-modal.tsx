@@ -52,6 +52,10 @@ export function SearchModal({ isOpen, onClose, theme = 'light' }: SearchModalPro
         const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
         const data = await res.json();
         setResults(data);
+        
+        import('@/lib/analytics').then(({ trackEvent }) => {
+          trackEvent('search', { search_term: query });
+        });
       } catch (err) {
         console.error('Search error:', err);
       } finally {

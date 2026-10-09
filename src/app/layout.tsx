@@ -129,6 +129,8 @@ const organizationSchema = {
   },
 };
 
+import { AnalyticsProvider } from '@/components/analytics/analytics-provider';
+
 export default function RootLayout({
   children,
 }: {
@@ -153,16 +155,18 @@ export default function RootLayout({
         </a>
 
         <AuthProvider>
-          <SmoothScroll>
-            <div className="relative flex min-h-screen flex-col overflow-x-hidden">
-              <main id="main-content" className="flex-1">
-                {children}
-              </main>
-              <CartDrawer />
-              <BackToTop />
-              <CookieConsent />
-            </div>
-          </SmoothScroll>
+          <AnalyticsProvider>
+            <SmoothScroll>
+              <div className="relative flex min-h-screen flex-col overflow-x-hidden">
+                <main id="main-content" className="flex-1">
+                  {children}
+                </main>
+                <CartDrawer />
+                <BackToTop />
+                <CookieConsent />
+              </div>
+            </SmoothScroll>
+          </AnalyticsProvider>
         </AuthProvider>
       </body>
     </html>

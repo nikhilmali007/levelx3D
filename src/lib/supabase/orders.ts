@@ -19,6 +19,7 @@ export interface CreateOrderParams {
   shippingInr: number;
   totalInr: number;
   authUserId?: string;
+  gstJson?: any;
 }
 
 export interface CreateOrderResult {
@@ -47,7 +48,7 @@ export function generateUUID(): string {
 }
 
 export async function createPendingOrder(params: CreateOrderParams): Promise<CreateOrderResult> {
-  const { customer, items, subtotalInr, shippingInr, totalInr, authUserId } = params;
+  const { customer, items, subtotalInr, shippingInr, totalInr, authUserId, gstJson } = params;
   const orderId = generateUUID();
   const createdAt = new Date().toISOString();
   const amountPaise = Math.round(totalInr * 100);
@@ -123,6 +124,7 @@ export async function createPendingOrder(params: CreateOrderParams): Promise<Cre
           shipping_inr: shippingInr,
           total_inr: totalInr,
           address_json: addressData,
+          gst_json: gstJson || null,
           created_at: createdAt,
         });
 

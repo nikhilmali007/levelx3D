@@ -32,7 +32,21 @@ import { ProductModal } from '@/components/admin/product-modal';
 import { formatPrice } from '@/lib/utils';
 
 export function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState<'products' | 'orders'>('products');
+  const [activeTab, setActiveTab] = useState<'products' | 'orders' | 'returns' | 'analytics'>('products');
+  const [returnRequests, setReturnRequests] = useState<any[]>([]);
+  const [analyticsSummary, setAnalyticsSummary] = useState<any>(null);
+
+  useEffect(() => {
+    if (activeTab === 'returns') {
+      const saved = localStorage.getItem('levelx3d_return_requests');
+      if (saved) setReturnRequests(JSON.parse(saved));
+    }
+    if (activeTab === 'analytics') {
+      import('@/lib/analytics').then(({ getAnalyticsSummary }) => {
+        setAnalyticsSummary(getAnalyticsSummary());
+      });
+    }
+  }, [activeTab]);
 
   // Products State
   const [products, setProducts] = useState<AdminProduct[]>([]);
@@ -315,6 +329,26 @@ export function AdminDashboard() {
               }`}
             >
               Orders Ledger ({orders.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('returns')}
+              className={`py-2.5 px-6 rounded-xl text-xs font-heading font-light tracking-apple-wide uppercase transition-all ${
+                activeTab === 'returns'
+                  ? 'bg-onyx text-chalk shadow-sm'
+                  : 'text-slate hover:text-ink'
+              }`}
+            >
+              Returns
+            </button>
+            <button
+              onClick={() => setActiveTab('analytics')}
+              className={`py-2.5 px-6 rounded-xl text-xs font-heading font-light tracking-apple-wide uppercase transition-all ${
+                activeTab === 'analytics'
+                  ? 'bg-onyx text-chalk shadow-sm'
+                  : 'text-slate hover:text-ink'
+              }`}
+            >
+              Analytics
             </button>
           </div>
 
@@ -732,6 +766,130 @@ export function AdminDashboard() {
                     )}
                   </tbody>
                 </table>
+              </div>
+            </div>
+          </div>
+        )}
+        {/* TAB 3: RETURNS */}
+        {activeTab === 'returns' && (
+          <div className="space-y-6">
+            <div className="border border-hairline-light rounded-3xl overflow-hidden bg-white shadow-2xs">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr className="border-b border-hairline-light bg-[#ECE9E2]/30 text-slate font-mono uppercase text-[11px]">
+                      <th className="py-4 px-6 font-medium">Order ID</th>
+                      <th className="py-4 px-6 font-medium">Customer Email</th>
+                      <th className="py-4 px-6 font-medium">Reason</th>
+                      <th className="py-4 px-6 font-medium">Date Requested</th>
+                      <th className="py-4 px-6 font-medium">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-hairline-light/60">
+                    {returnRequests.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="py-16 text-center text-slate font-sans">No return requests found.</td>
+                      </tr>
+                    ) : (
+                      returnRequests.map((req) => (
+                        <tr key={req.id} className="hover:bg-slate-50/50">
+                          <td className="py-4 px-6 font-mono text-ink">#{req.orderId.slice(0, 8)}</td>
+                          <td className="py-4 px-6 font-sans text-ink">{req.email}</td>
+                          <td className="py-4 px-6 font-sans text-slate">{req.reason}</td>
+                          <td className="py-4 px-6 font-mono text-slate">{new Date(req.createdAt).toLocaleDateString()}</td>
+                          <td className="py-4 px-6">
+                            <select
+                              value={req.status}
+                              onChange={(e) => {
+                                const updated = returnRequests.map(r => r.id === req.id ? { ...r, status: e.target.value } : r);
+                                setReturnRequests(updated);
+                                localStorage.setItem('levelx3d_return_requests', JSON.stringify(updated));
+                              }}
+                              className="bg-white border border-hairline-light rounded-lg px-2 py-1 outline-none font-mono text-[10px] uppercase"
+                            >
+                              <option value="Pending">Pending</option>
+                              <option value="Approved">Approved</option>
+                              <option value="Refund Initiated">Refund Initiated</option>
+                              <option value="Refunded">Completed</option>
+                              <option value="Rejected">Rejected</option>
+                            </select>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 4: ANALYTICS */}
+        {activeTab === 'analytics' && analyticsSummary && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="p-6 rounded-3xl border border-hairline-light bg-white">
+                <div className="text-xs font-mono uppercase text-slate mb-2">Total Page Views</div>
+                <div className="text-3xl font-heading text-ink">{analyticsSummary.totalPageViews}</div>
+              </div>
+              <div className="p-6 rounded-3xl border border-hairline-light bg-white">
+                <div className="text-xs font-mono uppercase text-slate mb-2">Total Events</div>
+                <div className="text-3xl font-heading text-ink">{analyticsSummary.totalEvents}</div>
+              </div>
+              <div className="p-6 rounded-3xl border border-hairline-light bg-white">
+                <div className="text-xs font-mono uppercase text-slate mb-2">Conversion Rate</div>
+                <div className="text-3xl font-heading text-ink">{analyticsSummary.conversionRate}%</div>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="p-6 rounded-3xl border border-hairline-light bg-white">
+                <h3 className="text-sm font-heading tracking-wide uppercase text-ink mb-4">Conversion Funnel</h3>
+                <div className="space-y-3 font-mono text-xs">
+                  <div className="flex justify-between items-center">
+                    <span>Page Views</span>
+                    <span>{analyticsSummary.funnel.views}</span>
+                  </div>
+                  <div className="w-full bg-[#ECE9E2] h-2 rounded-full overflow-hidden">
+                    <div className="bg-slate h-full" style={{ width: '100%' }} />
+                  </div>
+                  
+                  <div className="flex justify-between items-center mt-2">
+                    <span>Add to Cart</span>
+                    <span>{analyticsSummary.funnel.cart}</span>
+                  </div>
+                  <div className="w-full bg-[#ECE9E2] h-2 rounded-full overflow-hidden">
+                    <div className="bg-slate h-full" style={{ width: `${analyticsSummary.funnel.views ? (analyticsSummary.funnel.cart / analyticsSummary.funnel.views) * 100 : 0}%` }} />
+                  </div>
+                  
+                  <div className="flex justify-between items-center mt-2">
+                    <span>Begin Checkout</span>
+                    <span>{analyticsSummary.funnel.checkout}</span>
+                  </div>
+                  <div className="w-full bg-[#ECE9E2] h-2 rounded-full overflow-hidden">
+                    <div className="bg-slate h-full" style={{ width: `${analyticsSummary.funnel.views ? (analyticsSummary.funnel.checkout / analyticsSummary.funnel.views) * 100 : 0}%` }} />
+                  </div>
+                  
+                  <div className="flex justify-between items-center mt-2">
+                    <span>Purchases</span>
+                    <span>{analyticsSummary.funnel.purchase}</span>
+                  </div>
+                  <div className="w-full bg-[#ECE9E2] h-2 rounded-full overflow-hidden">
+                    <div className="bg-ink h-full" style={{ width: `${analyticsSummary.funnel.views ? (analyticsSummary.funnel.purchase / analyticsSummary.funnel.views) * 100 : 0}%` }} />
+                  </div>
+                </div>
+              </div>
+              
+              <div className="p-6 rounded-3xl border border-hairline-light bg-white">
+                <h3 className="text-sm font-heading tracking-wide uppercase text-ink mb-4">Top Pages</h3>
+                <div className="space-y-3 font-mono text-xs">
+                  {analyticsSummary.topPages.map((page: any, i: number) => (
+                    <div key={i} className="flex justify-between items-center p-2 hover:bg-canvas rounded-lg">
+                      <span className="truncate max-w-[200px]">{page.path}</span>
+                      <span>{page.views} views</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>

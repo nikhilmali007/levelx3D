@@ -85,6 +85,15 @@ export function useCart() {
 
     saveItems(updated);
     setIsDrawerOpen(true);
+    
+    import('@/lib/analytics').then(({ trackEvent }) => {
+      trackEvent('add_to_cart', {
+        item_id: product.id,
+        item_name: product.name,
+        price: product.price,
+        quantity,
+      });
+    });
   };
 
   const removeItem = (itemId: string) => {
@@ -93,6 +102,10 @@ export function useCart() {
       return currentId !== itemId && i.product.id !== itemId;
     });
     saveItems(updated);
+    
+    import('@/lib/analytics').then(({ trackEvent }) => {
+      trackEvent('remove_from_cart', { item_id: itemId });
+    });
   };
 
   const updateQuantity = (itemId: string, quantity: number) => {

@@ -10,8 +10,8 @@ import { formatPrice } from '@/lib/utils';
 import { Breadcrumbs } from '@/components/ecommerce/breadcrumbs';
 import { QuietButton } from '@/components/ui/quiet-button';
 
-const FREE_SHIPPING_THRESHOLD_INR = 5000;
-
+import { useAuth } from '@/context/auth-context';
+import { getShippingRate } from '@/lib/shipping';
 export function CartPageView() {
   const {
     items,
@@ -23,10 +23,15 @@ export function CartPageView() {
     totalItems,
   } = useCart();
 
+  const { user, customer } = useAuth();
+  const userPincode = customer?.pincode || user?.user_metadata?.pincode || '';
+  const shippingRate = getShippingRate(userPincode);
+  const freeShippingThreshold = shippingRate.freeThreshold;
+
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [checkoutSuccess, setCheckoutSuccess] = useState(false);
 
-  const shippingCost = totalPrice >= FREE_SHIPPING_THRESHOLD_INR || totalPrice === 0 ? 0 : 450;
+  const shippingCost = totalPrice >= freeShippingThreshold || totalPrice === 0 ? 0 : shippingRate.standardRate;
   const orderTotal = totalPrice + shippingCost;
 
   const handleCheckout = () => {
@@ -295,20 +300,20 @@ export function CartPageView() {
               <div className="p-3.5 bg-white rounded-2xl border border-hairline-light space-y-2">
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-slate text-[11px]">
-                    {totalPrice >= FREE_SHIPPING_THRESHOLD_INR ? (
+                    {totalPrice >= freeShippingThreshold ? (
                       <span className="text-emerald-700 font-medium">Complimentary Courier Qualified</span>
                     ) : (
-                      <span>Add {formatPrice(FREE_SHIPPING_THRESHOLD_INR - totalPrice)} for complimentary courier</span>
+                      <span>Add {formatPrice(freeShippingThreshold - totalPrice)} for complimentary courier</span>
                     )}
                   </span>
                   <span className="font-mono text-[10px] text-slate">
-                    {Math.min(100, Math.round((totalPrice / FREE_SHIPPING_THRESHOLD_INR) * 100))}%
+                    {Math.min(100, Math.round((totalPrice / freeShippingThreshold) * 100))}%
                   </span>
                 </div>
                 <div className="w-full h-1 bg-[#E4E1DA] rounded-full overflow-hidden">
                   <div
                     className="h-full bg-ink transition-all duration-300"
-                    style={{ width: `${Math.min(100, Math.round((totalPrice / FREE_SHIPPING_THRESHOLD_INR) * 100))}%` }}
+                    style={{ width: `${Math.min(100, Math.round((totalPrice / freeShippingThreshold) * 100))}%` }}
                   />
                 </div>
               </div>
