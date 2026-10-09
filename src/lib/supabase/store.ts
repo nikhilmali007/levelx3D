@@ -1,6 +1,23 @@
 import { supabase, isSupabaseConfigured } from './client';
 import { INITIAL_PRODUCTS, SHELVES_DATA, Product } from '@/lib/products-data';
 
+// Server-side memory store shared with admin — ensures products created
+// via the admin API are visible on the storefront even if the Supabase
+// write was blocked by RLS or the service-role key is missing.
+const globalStore = globalThis as any;
+interface MemoryStoreRef {
+  products: Map<string, any>;
+}
+function getMemoryStore(): MemoryStoreRef {
+  if (!globalStore.__levelx3d_admin_store) {
+    globalStore.__levelx3d_admin_store = {
+      products: new Map(),
+      orders: new Map(),
+    };
+  }
+  return globalStore.__levelx3d_admin_store;
+}
+
 export interface CategoryItem {
   id: string;
   name: string;
@@ -78,6 +95,14 @@ export async function getCategoryDetails(slug: string) {
 }
 
 export async function getAllProducts(): Promise<Product[]> {
+  const productsMap = new Map<string, Product>();
+
+  // 1. Seed with INITIAL_PRODUCTS as baseline
+  INITIAL_PRODUCTS.forEach((p) => {
+    productsMap.set(p.id, p);
+  });
+
+  // 2. If Supabase is configured, query products table
   if (isSupabaseConfigured) {
     try {
       const { data, error } = await supabase
@@ -102,7 +127,7 @@ export async function getAllProducts(): Promise<Product[]> {
         .order('created_at', { ascending: false });
 
       if (!error && data && data.length > 0) {
-        return data.map((p: any) => {
+        data.forEach((p: any) => {
           const sortedImages =
             p.product_images && p.product_images.length > 0
               ? [...p.product_images]
@@ -115,7 +140,7 @@ export async function getAllProducts(): Promise<Product[]> {
           const catSlug = p.categories?.slug || 'artifacts';
           const shelfName = p.categories?.shelf || 'Signature / Premium';
 
-          return {
+          productsMap.set(p.id, {
             id: p.id,
             slug: p.slug || p.id,
             name: p.name,
@@ -144,7 +169,7 @@ export async function getAllProducts(): Promise<Product[]> {
               dimensions: 'Custom Archival Scale',
             },
             createdAt: p.created_at,
-          };
+          });
         });
       }
     } catch (e) {
@@ -152,56 +177,102 @@ export async function getAllProducts(): Promise<Product[]> {
     }
   }
 
-  const result = [...INITIAL_PRODUCTS];
+  // 3. Always merge server-side memoryStore (admin-created products in this session)
+  const memStore = getMemoryStore();
+  memStore.products.forEach((ap: any) => {
+    // Skip archived or already-present products from Supabase
+    if (ap.status === 'archived') {
+      productsMap.delete(ap.id);
+      return;
+    }
+    // Only add if not already present from Supabase (Supabase is authoritative)
+    if (!productsMap.has(ap.id)) {
+      productsMap.set(ap.id, {
+        id: ap.id,
+        slug: ap.slug || ap.id,
+        name: ap.name,
+        tagline: ap.description?.slice(0, 75) || 'Archival 3D printed artifact',
+        description: ap.description || '',
+        price: Number(ap.price_inr),
+        originalPrice: ap.compare_at_price_inr ? Number(ap.compare_at_price_inr) : undefined,
+        category: ap.category || 'Artifacts',
+        categorySlug: ap.categorySlug || 'artifacts',
+        shelf: ap.shelf || 'Signature / Premium',
+        shelfSlug: ap.shelfSlug || shelfToSlug(ap.shelf || 'Signature / Premium'),
+        rating: 5.0,
+        reviewsCount: 24,
+        badge: ap.is_premium ? 'Signature' : undefined,
+        image: ap.image_url || ap.image,
+        images: ap.images && ap.images.length > 0 ? ap.images : [ap.image_url || ap.image],
+        isCustomizable: Boolean(ap.is_customizable),
+        options: ap.options || [],
+        geometryType: 'torus',
+        inStock: (ap.stock ?? 10) > 0,
+        stock: ap.stock ?? 10,
+        specs: {
+          material: 'Selective Laser Sintered (SLS) Nylon PA12',
+          resolution: '25 Microns',
+          finish: 'Vapor-Polished Monochrome',
+          dimensions: 'Custom Archival Scale',
+        },
+        createdAt: ap.created_at,
+      });
+    }
+  });
+
+  // 4. Client-side: merge localStorage admin products (for dev/preview)
   if (typeof window !== 'undefined') {
     try {
       const localAdminProds = JSON.parse(localStorage.getItem('levelx3d_admin_products') || '[]');
       localAdminProds.forEach((ap: any) => {
         if (ap.status === 'archived') {
-          const idx = result.findIndex((p) => p.id === ap.id || p.slug === ap.slug);
-          if (idx >= 0) result.splice(idx, 1);
+          productsMap.delete(ap.id);
           return;
         }
-        const converted: Product = {
-          id: ap.id,
-          slug: ap.slug,
-          name: ap.name,
-          tagline: ap.description?.slice(0, 75) || 'Archival 3D printed artifact',
-          description: ap.description,
-          price: ap.price_inr,
-          originalPrice: ap.compare_at_price_inr,
-          category: ap.category,
-          categorySlug: ap.categorySlug,
-          shelf: ap.shelf,
-          shelfSlug: ap.shelfSlug,
-          rating: 5.0,
-          reviewsCount: 24,
-          badge: ap.is_premium ? 'Signature' : undefined,
-          image: ap.image_url,
-          images: ap.images && ap.images.length > 0 ? ap.images : [ap.image_url],
-          isCustomizable: ap.is_customizable,
-          options: ap.options || [],
-          geometryType: 'torus',
-          inStock: ap.stock > 0,
-          stock: ap.stock,
-          specs: {
-            material: 'Selective Laser Sintered (SLS) Nylon PA12',
-            resolution: '25 Microns',
-            finish: 'Vapor-Polished Monochrome',
-            dimensions: 'Custom Archival Scale',
-          },
-          createdAt: ap.created_at,
-        };
-        const idx = result.findIndex((p) => p.id === ap.id || p.slug === ap.slug);
-        if (idx >= 0) {
-          result[idx] = converted;
-        } else {
-          result.unshift(converted);
+        if (!productsMap.has(ap.id)) {
+          productsMap.set(ap.id, {
+            id: ap.id,
+            slug: ap.slug || ap.id,
+            name: ap.name,
+            tagline: ap.description?.slice(0, 75) || 'Archival 3D printed artifact',
+            description: ap.description || '',
+            price: Number(ap.price_inr),
+            originalPrice: ap.compare_at_price_inr ? Number(ap.compare_at_price_inr) : undefined,
+            category: ap.category || 'Artifacts',
+            categorySlug: ap.categorySlug || 'artifacts',
+            shelf: ap.shelf || 'Signature / Premium',
+            shelfSlug: ap.shelfSlug || shelfToSlug(ap.shelf || 'Signature / Premium'),
+            rating: 5.0,
+            reviewsCount: 24,
+            badge: ap.is_premium ? 'Signature' : undefined,
+            image: ap.image_url || ap.image,
+            images: ap.images && ap.images.length > 0 ? ap.images : [ap.image_url || ap.image],
+            isCustomizable: Boolean(ap.is_customizable),
+            options: ap.options || [],
+            geometryType: 'torus',
+            inStock: (ap.stock ?? 10) > 0,
+            stock: ap.stock ?? 10,
+            specs: {
+              material: 'Selective Laser Sintered (SLS) Nylon PA12',
+              resolution: '25 Microns',
+              finish: 'Vapor-Polished Monochrome',
+              dimensions: 'Custom Archival Scale',
+            },
+            createdAt: ap.created_at,
+          });
         }
       });
-    } catch (e) {}
+    } catch (e) {
+      // localStorage unavailable
+    }
   }
-  return result;
+
+  // Sort newest first
+  return Array.from(productsMap.values()).sort((a, b) => {
+    const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+    const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+    return dateB - dateA;
+  });
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | null> {
@@ -281,7 +352,48 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
     }
   }
 
-  // Fallback to local catalog
+  // Fallback: check memoryStore for admin-created products
+  const memStore = getMemoryStore();
+  let memProduct: Product | null = null;
+  memStore.products.forEach((ap: any) => {
+    const apSlug = (ap.slug || '').toLowerCase();
+    const apId = (ap.id || '').toLowerCase();
+    if (apSlug === normalizedSlug || apId === normalizedSlug) {
+      memProduct = {
+        id: ap.id,
+        slug: ap.slug || ap.id,
+        name: ap.name,
+        tagline: ap.description?.slice(0, 75) || 'Archival 3D printed artifact',
+        description: ap.description || '',
+        price: Number(ap.price_inr),
+        originalPrice: ap.compare_at_price_inr ? Number(ap.compare_at_price_inr) : undefined,
+        category: ap.category || 'Artifacts',
+        categorySlug: ap.categorySlug || 'artifacts',
+        shelf: ap.shelf || 'Signature / Premium',
+        shelfSlug: ap.shelfSlug || shelfToSlug(ap.shelf || 'Signature / Premium'),
+        rating: 5.0,
+        reviewsCount: 24,
+        badge: ap.is_premium ? 'Signature' : undefined,
+        image: ap.image_url || ap.image,
+        images: ap.images && ap.images.length > 0 ? ap.images : [ap.image_url || ap.image],
+        isCustomizable: Boolean(ap.is_customizable),
+        options: ap.options || [],
+        geometryType: 'torus',
+        inStock: (ap.stock ?? 10) > 0,
+        stock: ap.stock ?? 10,
+        specs: {
+          material: 'Selective Laser Sintered (SLS) Nylon PA12',
+          resolution: '25 Microns',
+          finish: 'Vapor-Polished Monochrome',
+          dimensions: 'Custom Archival Scale',
+        },
+        createdAt: ap.created_at,
+      };
+    }
+  });
+  if (memProduct) return memProduct;
+
+  // Fallback to seeded catalog
   const found = INITIAL_PRODUCTS.find(
     (p) => p.slug.toLowerCase() === normalizedSlug || p.id.toLowerCase() === normalizedSlug
   );

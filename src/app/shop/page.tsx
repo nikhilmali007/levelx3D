@@ -4,6 +4,9 @@ import { Footer } from '@/components/layout/footer';
 import { ShopCatalogView } from '@/components/ecommerce/shop-catalog-view';
 import { getAllProducts } from '@/lib/supabase/store';
 
+// Force dynamic rendering so admin-created products show immediately
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'All Shelves & Collections — Level X 3D',
   description:

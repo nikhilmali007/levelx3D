@@ -6,6 +6,8 @@ import { ShopCatalogView } from '@/components/ecommerce/shop-catalog-view';
 import { getFilteredProducts, slugToShelf } from '@/lib/supabase/store';
 import { SHELVES_DATA } from '@/lib/products-data';
 
+export const dynamic = 'force-dynamic';
+
 interface ShelfPageProps {
   params: {
     shelf: string;
