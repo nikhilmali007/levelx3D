@@ -27,13 +27,18 @@ import {
   Check,
   ChevronDown
 } from 'lucide-react';
-import { AdminProduct, AdminOrder, OrderStatus } from '@/lib/supabase/admin';
+import { AdminProduct, AdminOrder, OrderStatus, slugify } from '@/lib/supabase/admin';
 import { ProductModal } from '@/components/admin/product-modal';
 import { formatPrice } from '@/lib/utils';
+import { openWhatsAppOrderStatus } from '@/lib/notifications';
+import { compressImage } from '@/lib/image-utils';
+import { SHELVES_DATA } from '@/lib/products-data';
 
 export function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<'products' | 'orders' | 'returns' | 'analytics'>('products');
   const [returnRequests, setReturnRequests] = useState<any[]>([]);
+  const [stockNotifications, setStockNotifications] = useState<any[]>([]);
+  const [newsletterSubscribers, setNewsletterSubscribers] = useState<any[]>([]);
   const [analyticsSummary, setAnalyticsSummary] = useState<any>(null);
 
   useEffect(() => {
@@ -41,6 +46,12 @@ export function AdminDashboard() {
       const saved = localStorage.getItem('levelx3d_return_requests');
       if (saved) setReturnRequests(JSON.parse(saved));
     }
+    const notifs = localStorage.getItem('levelx3d_stock_notifications');
+    if (notifs) setStockNotifications(JSON.parse(notifs));
+    
+    const news = localStorage.getItem('levelx3d_newsletter_subscribers');
+    if (news) setNewsletterSubscribers(JSON.parse(news));
+
     if (activeTab === 'analytics') {
       import('@/lib/analytics').then(({ getAnalyticsSummary }) => {
         setAnalyticsSummary(getAnalyticsSummary());
@@ -63,6 +74,91 @@ export function AdminDashboard() {
   const [orderStatusFilter, setOrderStatusFilter] = useState<string>('all');
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  // Quick Add State
+  const [showQuickAdd, setShowQuickAdd] = useState(false);
+  const [qaName, setQaName] = useState('');
+  const [qaPrice, setQaPrice] = useState<number>(14500);
+  const [qaCategory, setQaCategory] = useState('');
+  const [qaImage, setQaImage] = useState<File | null>(null);
+  const [qaPreview, setQaPreview] = useState<string | null>(null);
+  const [isQuickAdding, setIsQuickAdding] = useState(false);
+
+  const categoryOptions = SHELVES_DATA.flatMap(shelf => 
+    shelf.categories.map(cat => ({
+      value: `${shelf.shelf}__${cat.name}`,
+      label: `${shelf.shelf} > ${cat.name}`,
+      shelf: shelf.shelf,
+      category: cat.name
+    }))
+  );
+
+  useEffect(() => {
+    if (categoryOptions.length > 0 && !qaCategory) {
+      setQaCategory(categoryOptions[0].value);
+    }
+  }, [categoryOptions, qaCategory]);
+
+  const handleQuickAdd = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!qaName.trim() || !qaPrice || !qaImage) return;
+    
+    setIsQuickAdding(true);
+    try {
+      // 1. Compress and Upload Image
+      const compressedBlob = await compressImage(qaImage, 1200, 0.8);
+      const compressedFile = new File([compressedBlob], qaImage.name, { type: 'image/jpeg' });
+      const formData = new FormData();
+      formData.append('file', compressedFile);
+
+      const upRes = await fetch('/api/admin/upload', {
+        method: 'POST',
+        headers: { 'x-admin-key': sessionStorage.getItem('levelx3d_admin_passkey') || '' },
+        body: formData,
+      });
+      const upData = await upRes.json();
+      if (!upRes.ok || !upData.url) throw new Error(upData.error || 'Upload failed');
+      
+      // 2. Save Product
+      const catOpt = categoryOptions.find(c => c.value === qaCategory) || categoryOptions[0];
+      const payload = {
+        name: qaName.trim(),
+        slug: slugify(qaName.trim()),
+        shelf: catOpt.shelf,
+        category: catOpt.category,
+        price_inr: Number(qaPrice),
+        status: 'active',
+        image_url: upData.url,
+        images: [upData.url],
+        stock: 10,
+        options: []
+      };
+
+      const res = await fetch('/api/admin/products', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-admin-key': sessionStorage.getItem('levelx3d_admin_passkey') || ''
+        },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setProducts(prev => [data.product, ...prev]);
+        setShowQuickAdd(false);
+        setQaName('');
+        setQaImage(null);
+        setQaPreview(null);
+        showToast(`Product "${data.product.name}" added instantly.`);
+      } else {
+        alert(data.error || 'Failed to save product');
+      }
+    } catch (err: any) {
+      alert(err.message || 'Quick add failed');
+    } finally {
+      setIsQuickAdding(false);
+    }
+  };
 
   // Toast feedback
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -136,6 +232,12 @@ export function AdminDashboard() {
           prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
         );
         showToast(`Order #${orderId.slice(0, 8)} status updated to ${newStatus.toUpperCase()}`);
+        
+        // Auto-open WhatsApp notification
+        const order = orders.find(o => o.id === orderId);
+        if (order && order.customer?.phone) {
+          openWhatsAppOrderStatus(order.customer.phone, order.id, newStatus, order.customer.name || 'Customer');
+        }
       } else {
         alert(data.error || 'Failed to update order status');
       }
@@ -302,7 +404,10 @@ export function AdminDashboard() {
               {activeProductsCount}
             </div>
             <span className="text-[11px] font-sans text-slate block">
-              {products.length} total across 18 shelves
+              {products.length} total across 18 shelves &bull; {stockNotifications.length} restock requests
+            </span>
+            <span className="text-[11px] font-sans text-slate block mt-1">
+              {newsletterSubscribers.length} newsletter subscribers
             </span>
           </div>
         </div>
@@ -354,16 +459,25 @@ export function AdminDashboard() {
 
           <div className="flex items-center gap-3">
             {activeTab === 'products' ? (
-              <button
-                onClick={() => {
-                  setEditingProduct(null);
-                  setIsModalOpen(true);
-                }}
-                className="py-3 px-5 rounded-xl bg-onyx hover:bg-ink text-chalk text-xs font-heading font-light tracking-apple-wide uppercase shadow-sm transition-all flex items-center gap-2"
-              >
-                <Plus className="w-4 h-4" />
-                <span>New Product</span>
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setShowQuickAdd(!showQuickAdd)}
+                  className="py-3 px-5 rounded-xl border border-hairline-light hover:bg-slate-50 text-ink text-xs font-heading font-light tracking-apple-wide uppercase transition-all flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Quick Add</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setEditingProduct(null);
+                    setIsModalOpen(true);
+                  }}
+                  className="py-3 px-5 rounded-xl bg-onyx hover:bg-ink text-chalk text-xs font-heading font-light tracking-apple-wide uppercase shadow-sm transition-all flex items-center gap-2"
+                >
+                  <Layers className="w-4 h-4" />
+                  <span>Full Builder</span>
+                </button>
+              </div>
             ) : (
               <button
                 onClick={fetchOrders}
@@ -380,6 +494,53 @@ export function AdminDashboard() {
         {/* TAB 1: PRODUCTS INVENTORY */}
         {activeTab === 'products' && (
           <div className="space-y-6">
+            {/* Quick Add Form Inline */}
+            <AnimatePresence>
+              {showQuickAdd && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="overflow-hidden"
+                >
+                  <form onSubmit={handleQuickAdd} className="p-5 bg-white border border-hairline-light rounded-2xl flex flex-col sm:flex-row gap-4 items-end shadow-sm">
+                    <div className="flex-1 min-w-[150px]">
+                      <label className="text-[10px] font-mono uppercase text-slate tracking-wider block mb-1">Name</label>
+                      <input required type="text" value={qaName} onChange={(e) => setQaName(e.target.value)} placeholder="Product Name" className="w-full bg-canvas border border-hairline-light focus:border-ink rounded-lg px-3 py-2 text-sm outline-none" />
+                    </div>
+                    <div className="w-28">
+                      <label className="text-[10px] font-mono uppercase text-slate tracking-wider block mb-1">Price (₹)</label>
+                      <input required type="number" min="0" step="100" value={qaPrice} onChange={(e) => setQaPrice(Number(e.target.value))} className="w-full bg-canvas border border-hairline-light focus:border-ink rounded-lg px-3 py-2 text-sm font-mono outline-none" />
+                    </div>
+                    <div className="flex-1 min-w-[150px]">
+                      <label className="text-[10px] font-mono uppercase text-slate tracking-wider block mb-1">Category</label>
+                      <select value={qaCategory} onChange={(e) => setQaCategory(e.target.value)} className="w-full bg-canvas border border-hairline-light focus:border-ink rounded-lg px-3 py-2 text-sm outline-none">
+                        {categoryOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                      </select>
+                    </div>
+                    <div className="w-32">
+                      <label className="text-[10px] font-mono uppercase text-slate tracking-wider block mb-1">Image</label>
+                      <div className="relative">
+                        <input required type="file" accept="image/*" onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            setQaImage(file);
+                            setQaPreview(URL.createObjectURL(file));
+                          }
+                        }} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
+                        <div className="h-[38px] w-full bg-canvas border border-hairline-light rounded-lg flex items-center justify-center text-xs text-slate overflow-hidden relative">
+                          {qaPreview ? <Image src={qaPreview} alt="Preview" fill className="object-cover" /> : 'Choose Image'}
+                        </div>
+                      </div>
+                    </div>
+                    <button type="submit" disabled={isQuickAdding} className="py-2.5 px-5 rounded-lg bg-onyx hover:bg-ink text-chalk text-sm font-medium transition-colors disabled:opacity-50 h-[38px] flex items-center justify-center min-w-[100px]">
+                      {isQuickAdding ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : 'Save'}
+                    </button>
+                  </form>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {/* Filter & Search Bar */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="relative flex-1 max-w-md">
@@ -484,7 +645,7 @@ export function AdminDashboard() {
                           {/* Stock */}
                           <td className="py-4 px-6 font-mono text-slate">
                             {p.stock > 0 ? (
-                              <span className="text-ink">{p.stock} units</span>
+                              <span className={p.stock <= 3 ? "text-red-500 font-bold" : "text-ink"}>{p.stock} units</span>
                             ) : (
                               <span className="text-red-500 font-medium">Sold Out</span>
                             )}

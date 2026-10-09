@@ -7,6 +7,7 @@ import { ProductGallery } from '@/components/ecommerce/product-gallery';
 import { ProductDetailsClient } from '@/components/ecommerce/product-details-client';
 import { RelatedProducts } from '@/components/ecommerce/related-products';
 import { ProductReviews } from '@/components/ecommerce/product-reviews';
+import { RecentlyViewed } from '@/components/ecommerce/recently-viewed';
 import { getAllProducts, getProductBySlug } from '@/lib/supabase/store';
 
 interface ProductPageProps {
@@ -153,6 +154,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
           categorySlug={product.categorySlug} 
           shelfSlug={product.shelfSlug} 
         />
+        
+        <RecentlyViewed />
       </main>
 
       <Footer />

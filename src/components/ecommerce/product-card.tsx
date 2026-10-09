@@ -3,13 +3,14 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { Star, ShoppingBag, Eye, Heart } from 'lucide-react';
+import { Star, ShoppingBag, Eye, Heart, Layers } from 'lucide-react';
 import { Product } from '@/types/product';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatPrice } from '@/lib/utils';
 import { useCart } from '@/hooks/use-cart';
 import { useWishlist } from '@/hooks/use-wishlist';
+import { useCompare } from '@/hooks/use-compare';
 
 interface ProductCardProps {
   product: Product;
@@ -19,10 +20,12 @@ interface ProductCardProps {
 export function ProductCard({ product, onInspect3D }: ProductCardProps) {
   const { addItem } = useCart();
   const { isInWishlist, toggleWishlist } = useWishlist();
+  const { isInCompare, toggleCompare } = useCompare();
   const [isHovered, setIsHovered] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
 
   const inWishlist = isInWishlist(product.id);
+  const inCompare = isInCompare(product.id);
 
   const handleAddToCart = () => {
     addItem(product);
@@ -54,18 +57,25 @@ export function ProductCard({ product, onInspect3D }: ProductCardProps) {
 
         {/* Top Badges */}
         <div className="absolute top-3.5 left-3.5 right-3.5 flex items-center justify-between">
-          <Badge
-            variant={
-              product.badge === 'Limited Edition'
-                ? 'neon'
-                : product.badge === 'Best Seller'
-                ? 'default'
-                : 'secondary'
-            }
-            className="pointer-events-none"
-          >
-            {product.badge || product.category}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge
+              variant={
+                product.badge === 'Limited Edition'
+                  ? 'neon'
+                  : product.badge === 'Best Seller'
+                  ? 'default'
+                  : 'secondary'
+              }
+              className="pointer-events-none"
+            >
+              {product.badge || product.category}
+            </Badge>
+            {product.stock !== undefined && product.stock <= 3 && product.inStock && (
+              <Badge variant="destructive" className="bg-red-500 hover:bg-red-600 text-white pointer-events-none text-[10px] uppercase font-bold py-0 h-5">
+                Low Stock
+              </Badge>
+            )}
+          </div>
 
           <div className="flex items-center gap-2">
             <span className="flex items-center gap-1 bg-slate-950/70 border border-white/10 px-2 py-0.5 rounded-full text-[11px] text-amber-400 font-mono pointer-events-none">
@@ -76,9 +86,22 @@ export function ProductCard({ product, onInspect3D }: ProductCardProps) {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                toggleCompare(product as any);
+              }}
+              className="p-1.5 rounded-full bg-slate-950/70 border border-white/10 hover:border-cyan/50 hover:bg-slate-900 transition-colors"
+              title={inCompare ? "Remove from compare" : "Compare"}
+              aria-label={inCompare ? "Remove from compare" : "Compare"}
+            >
+              <Layers className={`w-4 h-4 ${inCompare ? 'text-cyan' : 'text-slate-300'}`} />
+            </button>
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 toggleWishlist(product);
               }}
               className="p-1.5 rounded-full bg-slate-950/70 border border-white/10 hover:border-cyan/50 hover:bg-slate-900 transition-colors"
+              title={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
               aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
             >
               <Heart className={`w-4 h-4 ${inWishlist ? 'fill-cyan text-cyan' : 'text-slate-300'}`} />

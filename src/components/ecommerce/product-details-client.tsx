@@ -1,13 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Product, ProductOption } from '@/lib/products-data';
 import { useCart } from '@/hooks/use-cart';
 import { formatPrice } from '@/lib/utils';
-import { Share2, Check, ShieldCheck, Sparkles, CheckCircle2, ChevronRight, Heart, MessageCircle } from 'lucide-react';
+import { Share2, Check, ShieldCheck, Sparkles, CheckCircle2, ChevronRight, Heart, MessageCircle, Truck } from 'lucide-react';
 import { QuietButton } from '@/components/ui/quiet-button';
 import { useWishlist } from '@/hooks/use-wishlist';
+import { useRecentlyViewed } from '@/hooks/use-recently-viewed';
+import { getEstimatedDeliveryDate } from '@/lib/shipping';
+import { ShareButtons } from '@/components/ecommerce/share-buttons';
 
 interface ProductDetailsClientProps {
   product: Product;
@@ -16,8 +19,24 @@ interface ProductDetailsClientProps {
 export function ProductDetailsClient({ product }: ProductDetailsClientProps) {
   const { addItem } = useCart();
   const { isInWishlist, toggleWishlist } = useWishlist();
+  const { addRecentlyViewed } = useRecentlyViewed();
   const [quantity, setQuantity] = useState(1);
   const [copied, setCopied] = useState(false);
+  const [notifyEmail, setNotifyEmail] = useState('');
+  const [notifySuccess, setNotifySuccess] = useState(false);
+
+  const handleNotifyMe = () => {
+    if (!notifyEmail) return;
+    const key = 'levelx3d_stock_notifications';
+    const existing = JSON.parse(localStorage.getItem(key) || '[]');
+    existing.push({ email: notifyEmail, productId: product.id, productName: product.name, date: new Date().toISOString() });
+    localStorage.setItem(key, JSON.stringify(existing));
+    setNotifySuccess(true);
+  };
+
+  useEffect(() => {
+    addRecentlyViewed(product);
+  }, [product, addRecentlyViewed]);
 
   const inWishlist = isInWishlist(product.id);
 
@@ -246,6 +265,9 @@ export function ProductDetailsClient({ product }: ProductDetailsClientProps) {
 
       {/* 5. Quantity & Primary Add to Cart Action */}
       <div className="space-y-4 pt-2">
+        <div className="text-[11px] font-mono text-emerald-600 font-medium">
+          Buy 3+ items for 5% off &bull; Buy 5+ for 10% off
+        </div>
         <div className="flex items-center gap-4">
           {/* Quantity stepper */}
           <div className="flex items-center border border-hairline-light rounded-xl bg-canvas overflow-hidden">
@@ -270,15 +292,37 @@ export function ProductDetailsClient({ product }: ProductDetailsClientProps) {
           </div>
 
           {/* Primary Add to Cart Button */}
-          <button
-            onClick={handleAddToCart}
-            disabled={!product.inStock}
-            className="flex-1 py-3 px-6 rounded-xl bg-onyx text-chalk hover:bg-ink transition-all duration-200 text-xs sm:text-sm font-heading font-light tracking-apple-wide uppercase text-center shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {product.inStock
-              ? `Add to Bag &bull; ${formatPrice(calculatedPrice * quantity)}`
-              : 'Out of Stock'}
-          </button>
+          {product.inStock ? (
+            <button
+              onClick={handleAddToCart}
+              disabled={!product.inStock}
+              className="flex-1 py-3 px-6 rounded-xl bg-onyx text-chalk hover:bg-ink transition-all duration-200 text-xs sm:text-sm font-heading font-light tracking-apple-wide uppercase text-center shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {`Add to Bag \u2022 ${formatPrice(
+                  calculatedPrice * quantity * (quantity >= 5 ? 0.9 : quantity >= 3 ? 0.95 : 1)
+                )}`}
+            </button>
+          ) : notifySuccess ? (
+            <div className="flex-1 py-3 px-6 rounded-xl border border-emerald-500 bg-emerald-50 text-emerald-700 text-xs text-center">
+              We'll notify you when available!
+            </div>
+          ) : (
+            <div className="flex-1 flex gap-2">
+              <input
+                type="email"
+                value={notifyEmail}
+                onChange={(e) => setNotifyEmail(e.target.value)}
+                placeholder="Enter email to be notified"
+                className="w-full bg-canvas border border-hairline-light focus:border-ink rounded-xl px-3 text-xs outline-none"
+              />
+              <button
+                onClick={handleNotifyMe}
+                className="py-3 px-4 rounded-xl bg-onyx text-chalk text-xs font-medium shrink-0"
+              >
+                Notify Me
+              </button>
+            </div>
+          )}
 
           {/* Wishlist Button */}
           <button
@@ -306,29 +350,28 @@ export function ProductDetailsClient({ product }: ProductDetailsClientProps) {
           </div>
         </div>
 
+        <div className="pt-2">
+          <div className="text-xs font-mono text-slate bg-canvas border border-hairline-light rounded-xl p-3 flex items-center justify-center gap-2">
+            <Truck className="w-4 h-4" />
+            <span>Estimated delivery: <strong>{getEstimatedDeliveryDate('5-7 business days')}</strong></span>
+          </div>
+        </div>
+
         {/* WhatsApp Actions */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-          <button
-            onClick={() => {
-              const url = typeof window !== 'undefined' ? window.location.href : '';
-              window.open(`https://wa.me/?text=${encodeURIComponent(`Check out ${product.name} at Level X 3D!\n\nPrice: ${formatPrice(calculatedPrice)}\n\n${url}`)}`, '_blank');
-            }}
-            className="flex items-center justify-center gap-2 py-3 rounded-xl border border-[#25D366] text-[#25D366] hover:bg-[#25D366] hover:text-white transition-colors text-xs font-heading font-medium tracking-wide uppercase"
-          >
-            <MessageCircle className="w-4 h-4" />
-            <span>Share on WhatsApp</span>
-          </button>
           <button
             onClick={() => {
               const phone = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '917208752822';
               window.open(`https://wa.me/${phone}?text=${encodeURIComponent(`Hi Level X 3D, I would like to order ${product.name} (Price: ${formatPrice(calculatedPrice)}). Please assist me with the fabrication and order details.`)}`, '_blank');
             }}
-            className="flex items-center justify-center gap-2 py-3 rounded-xl bg-[#25D366] text-white hover:bg-[#128C7E] transition-colors text-xs font-heading font-medium tracking-wide uppercase shadow-sm"
+            className="flex items-center justify-center gap-2 py-3 rounded-xl bg-[#25D366] text-white hover:bg-[#128C7E] transition-colors text-xs font-heading font-medium tracking-wide uppercase shadow-sm sm:col-span-2"
           >
             <MessageCircle className="w-4 h-4" />
             <span>Order via WhatsApp</span>
           </button>
         </div>
+
+        <ShareButtons product={product as any} />
       </div>
 
       {/* 6. Technical Specifications Card */}
@@ -353,6 +396,12 @@ export function ProductDetailsClient({ product }: ProductDetailsClientProps) {
             <dt className="text-[10px] font-mono text-slate uppercase">Dimensions</dt>
             <dd className="font-sans text-ink">{product.specs.dimensions}</dd>
           </div>
+          {product.weight_grams && (
+            <div className="p-3.5 rounded-xl border border-hairline-light bg-canvas space-y-1">
+              <dt className="text-[10px] font-mono text-slate uppercase">Weight</dt>
+              <dd className="font-sans text-ink">{product.weight_grams} g</dd>
+            </div>
+          )}
         </dl>
       </div>
 

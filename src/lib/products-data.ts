@@ -254,6 +254,7 @@ export interface Product {
     finish: string;
     dimensions: string;
   };
+  weight_grams?: number;
   createdAt?: string;
 }
 

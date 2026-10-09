@@ -12,6 +12,15 @@ export function Footer() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
+    
+    // Save email to localStorage
+    const key = 'levelx3d_newsletter_subscribers';
+    const existing = JSON.parse(localStorage.getItem(key) || '[]');
+    if (!existing.includes(email)) {
+      existing.push(email);
+      localStorage.setItem(key, JSON.stringify(existing));
+    }
+    
     setSubmitted(true);
     setTimeout(() => {
       setEmail('');
@@ -147,8 +156,8 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/#about" className="hover:text-chalk transition-colors min-h-[44px] flex items-center py-1">
-                  Recyclable Polymers
+                <Link href="/faq" className="hover:text-chalk transition-colors min-h-[44px] flex items-center py-1">
+                  FAQ & Help Center
                 </Link>
               </li>
             </ul>
@@ -160,17 +169,17 @@ export function Footer() {
             </h4>
             <ul className="space-y-1 text-xs font-sans text-chalk/80">
               <li>
-                <Link href="/account/returns" className="hover:text-chalk transition-colors min-h-[44px] flex items-center py-1">
+                <Link href="/refund-policy" className="hover:text-chalk transition-colors min-h-[44px] flex items-center py-1">
                   Returns & Refunds
                 </Link>
               </li>
               <li>
-                <Link href="/#terms" className="hover:text-chalk transition-colors min-h-[44px] flex items-center py-1">
+                <Link href="/terms" className="hover:text-chalk transition-colors min-h-[44px] flex items-center py-1">
                   Terms of Fabrication
                 </Link>
               </li>
               <li>
-                <Link href="/#privacy" className="hover:text-chalk transition-colors min-h-[44px] flex items-center py-1">
+                <Link href="/privacy" className="hover:text-chalk transition-colors min-h-[44px] flex items-center py-1">
                   Privacy Policy
                 </Link>
               </li>
@@ -180,7 +189,7 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/#shipping" className="hover:text-chalk transition-colors min-h-[44px] flex items-center py-1">
+                <Link href="/shipping-policy" className="hover:text-chalk transition-colors min-h-[44px] flex items-center py-1">
                   Worldwide Shipping
                 </Link>
               </li>

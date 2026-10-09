@@ -26,7 +26,7 @@ import { CreateOrderResult } from '@/lib/supabase/orders';
 import { useAuth } from '@/context/auth-context';
 import { calculateGST } from '@/lib/gst';
 
-import { calculateShipping, ShippingZone } from '@/lib/shipping';
+import { calculateShipping, ShippingZone, getEstimatedDeliveryDate } from '@/lib/shipping';
 
 const INDIAN_STATES = [
   'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa',
@@ -897,7 +897,7 @@ export function CheckoutView() {
                         className="w-4 h-4 rounded border-hairline-light text-ink focus:ring-ink"
                       />
                       <span className="text-xs font-sans text-ink">
-                        Express Delivery ({shippingResult.deliveryEstimate})
+                        Express Delivery (Estimated: {getEstimatedDeliveryDate(shippingResult.deliveryEstimate)})
                       </span>
                     </label>
                   </div>
@@ -1079,7 +1079,7 @@ export function CheckoutView() {
                 </div>
               )}
               <div className="flex justify-between">
-                <span>Shipping ({shippingResult.zoneName}, {shippingResult.deliveryEstimate})</span>
+                <span>Shipping ({shippingResult.zoneName}, Estimated: {getEstimatedDeliveryDate(shippingResult.deliveryEstimate)})</span>
                 <span className="text-ink">
                   {shippingCost === 0 ? 'FREE' : formatPrice(shippingCost)}
                 </span>

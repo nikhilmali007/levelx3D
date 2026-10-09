@@ -116,3 +116,27 @@ export function calculateShipping(pincode: string, orderSubtotal: number, isExpr
     zoneName: rate.zoneName
   };
 }
+
+export function getEstimatedDeliveryDate(daysString: string): string {
+  // Extract the upper limit of days (e.g., "3-5 business days" -> 5)
+  const match = daysString.match(/-(\d+)/) || daysString.match(/(\d+)/);
+  const addDays = match ? parseInt(match[1], 10) : 5; // Default to 5
+
+  let current = new Date();
+  let added = 0;
+
+  while (added < addDays) {
+    current.setDate(current.getDate() + 1);
+    // 0 is Sunday, 6 is Saturday
+    if (current.getDay() !== 0 && current.getDay() !== 6) {
+      added++;
+    }
+  }
+
+  return current.toLocaleDateString('en-GB', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
+  }).replace(/,/g, ''); // "Mon 14 Oct 2026"
+}

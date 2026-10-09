@@ -13,12 +13,14 @@ export interface Product {
   image: string;
   geometryType: 'torus' | 'sphere' | 'cyber-cube' | 'prism' | 'headset';
   inStock: boolean;
+  stock?: number;
   specs: {
     material: string;
     resolution: string;
     finish: string;
     dimensions: string;
   };
+  weight_grams?: number;
   slug?: string;
 }
 

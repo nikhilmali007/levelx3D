@@ -125,8 +125,17 @@ export function useCart() {
   };
 
   const totalItems = items.reduce((acc, item) => acc + item.quantity, 0);
+  
+  const getItemPrice = (item: CartItem) => {
+    let discount = 0;
+    if (item.quantity >= 5) discount = 0.10;
+    else if (item.quantity >= 3) discount = 0.05;
+    
+    return item.product.price * (1 - discount);
+  };
+
   const totalPrice = items.reduce(
-    (acc, item) => acc + item.product.price * item.quantity,
+    (acc, item) => acc + getItemPrice(item) * item.quantity,
     0
   );
 
@@ -141,5 +150,6 @@ export function useCart() {
     clearCart,
     totalItems,
     totalPrice,
+    getItemPrice,
   };
 }
